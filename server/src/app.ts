@@ -4,8 +4,8 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/authRoutes";
-import userRoutes from "./routes/userRoutes";
 import courseRoutes from "./routes/courseRoutes";
+import adminRoutes from "./routes/adminRoutes";
 import { notFound, globalErrorHandler } from "./middlewares/errorMiddleware.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes";
 
@@ -52,9 +52,9 @@ app.get("/health", (_req: Request, res: Response) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/courses", courseRoutes);
 app.use("/api/v1", enrollmentRoutes);
+app.use("/api/v1/admin", adminRoutes);
 
 
 // ============ 404 + Error Handling ============

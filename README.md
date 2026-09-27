@@ -1,6 +1,8 @@
 # Learnify API
 
-Backend API for a Learning Management System (LMS). Learnify provides JWT-based authentication, role-based access control, course management, student enrollment, and progress tracking.
+Backend API for a Learning Management System (LMS). Learnify provides JWT-based authentication, role-based access control, course management, student enrollment, progress tracking, and admin operations.
+
+The backend lives in the `server/` directory.
 
 ## Features
 
@@ -28,7 +30,7 @@ Node.js, TypeScript, Express 5, MongoDB, Mongoose, JWT, Zod, and pnpm.
 
 ```bash
 git clone https://github.com/AL-Shewehi/Learnify.git
-cd lms-backend
+cd Learnify/server
 pnpm install
 cp .env.example .env
 ```
@@ -72,16 +74,16 @@ Never commit `.env` or production secrets. When `DEVELOPMENT=true`, password-res
 
 ## Available Commands
 
-| Command | Description |
-| --- | --- |
-| `pnpm dev` | Run the API with TypeScript watch mode |
-| `pnpm build` | Compile TypeScript to `dist/` |
-| `pnpm start` | Run the compiled production server |
-| `pnpm lint` | Check the source with ESLint |
-| `pnpm lint:fix` | Automatically fix ESLint issues |
-| `pnpm clean` | Remove the compiled output |
-| `pnpm seed:admin` | Create the default admin account |
-| `pnpm fix:indexes` | Rebuild Course MongoDB indexes |
+| Command            | Description                            |
+| ------------------ | -------------------------------------- |
+| `pnpm dev`         | Run the API with TypeScript watch mode |
+| `pnpm build`       | Compile TypeScript to `dist/`          |
+| `pnpm start`       | Run the compiled production server     |
+| `pnpm lint`        | Check the source with ESLint           |
+| `pnpm lint:fix`    | Automatically fix ESLint issues        |
+| `pnpm clean`       | Remove the compiled output             |
+| `pnpm seed:admin`  | Create the default admin account       |
+| `pnpm fix:indexes` | Rebuild Course MongoDB indexes         |
 
 After configuring MongoDB, you can create an admin account with:
 
@@ -103,22 +105,22 @@ Authorization: Bearer <jwt-token>
 
 ### Health
 
-| Method | Endpoint | Auth |
-| --- | --- | --- |
-| `GET` | `/health` | Public |
+| Method | Endpoint  | Auth   |
+| ------ | --------- | ------ |
+| `GET`  | `/health` | Public |
 
 ### Authentication
 
-| Method | Endpoint | Auth | Purpose |
-| --- | --- | --- | --- |
-| `POST` | `/auth/signup` | Public | Register a student or instructor |
-| `POST` | `/auth/login` | Public | Login and receive a JWT |
-| `POST` | `/auth/forgot-password` | Public | Request a password reset email |
-| `POST` | `/auth/reset-password/:token` | Public | Set a new password |
-| `GET` | `/auth/me` | Any authenticated user | Get the current user |
-| `PATCH` | `/auth/update-me` | Any authenticated user | Update name or email |
-| `PATCH` | `/auth/change-password` | Any authenticated user | Change password |
-| `DELETE` | `/auth/delete-me` | Any authenticated user | Deactivate the account |
+| Method   | Endpoint                      | Auth                   | Purpose                          |
+| -------- | ----------------------------- | ---------------------- | -------------------------------- |
+| `POST`   | `/auth/signup`                | Public                 | Register a student or instructor |
+| `POST`   | `/auth/login`                 | Public                 | Login and receive a JWT          |
+| `POST`   | `/auth/forgot-password`       | Public                 | Request a password reset email   |
+| `POST`   | `/auth/reset-password/:token` | Public                 | Set a new password               |
+| `GET`    | `/auth/me`                    | Any authenticated user | Get the current user             |
+| `PATCH`  | `/auth/update-me`             | Any authenticated user | Update name or email             |
+| `PATCH`  | `/auth/change-password`       | Any authenticated user | Change password                  |
+| `DELETE` | `/auth/delete-me`             | Any authenticated user | Deactivate the account           |
 
 Example signup and login:
 
@@ -136,17 +138,17 @@ Signup accepts `student` or `instructor`. Admin users should be created through 
 
 ### Courses
 
-| Method | Endpoint | Auth |
-| --- | --- | --- |
-| `GET` | `/courses` | Public, optional JWT |
-| `GET` | `/courses/:id` | Public, optional JWT |
-| `POST` | `/courses` | Instructor or admin |
-| `PATCH` | `/courses/:id` | Course owner or admin |
-| `DELETE` | `/courses` | Instructor or admin |
-| `PATCH` | `/courses/:id/publish` | Course instructor |
-| `PATCH` | `/courses/:id/unpublish` | Course instructor |
-| `PATCH` | `/courses/:id/suspend` | Admin |
-| `PATCH` | `/courses/:id/activate` | Admin |
+| Method   | Endpoint                 | Auth                  |
+| -------- | ------------------------ | --------------------- |
+| `GET`    | `/courses`               | Public, optional JWT  |
+| `GET`    | `/courses/:id`           | Public, optional JWT  |
+| `POST`   | `/courses`               | Instructor or admin   |
+| `PATCH`  | `/courses/:id`           | Course owner or admin |
+| `DELETE` | `/courses`               | Instructor or admin   |
+| `PATCH`  | `/courses/:id/publish`   | Course instructor     |
+| `PATCH`  | `/courses/:id/unpublish` | Course instructor     |
+| `PATCH`  | `/courses/:id/suspend`   | Admin                 |
+| `PATCH`  | `/courses/:id/activate`  | Admin                 |
 
 Create a course with `title`, `price`, and `level`. The allowed levels are `beginner`, `intermediate`, and `advanced`.
 
@@ -161,12 +163,12 @@ Course listing supports `page`, `limit`, `subject`, `level`, `sort`, and `search
 
 ### Enrollment and Progress
 
-| Method | Endpoint | Auth |
-| --- | --- | --- |
-| `POST` | `/courses/:courseId/enroll` | Student |
-| `GET` | `/enrollments/me` | Student |
-| `GET` | `/courses/:courseId/enrollments` | Course instructor or admin |
-| `PATCH` | `/courses/:courseId/progress` | Student |
+| Method  | Endpoint                         | Auth                       |
+| ------- | -------------------------------- | -------------------------- |
+| `POST`  | `/courses/:courseId/enroll`      | Student                    |
+| `GET`   | `/enrollments/me`                | Student                    |
+| `GET`   | `/courses/:courseId/enrollments` | Course instructor or admin |
+| `PATCH` | `/courses/:courseId/progress`    | Student                    |
 
 Example enrollment and progress update:
 
@@ -184,14 +186,28 @@ curl -X PATCH http://localhost:5000/api/v1/courses/<course-id>/progress \
 
 `GET /enrollments/me` supports `status`, `page`, and `limit`. Enrollment statuses are `active`, `completed`, and `dropped`.
 
+### Admin
+
+All admin endpoints require an authenticated user with the `admin` role.
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/admin/stats` | Get platform statistics and revenue totals |
+| `GET` | `/admin/users` | List and filter users |
+| `PATCH` | `/admin/users/:id/role` | Change a user's role |
+| `PATCH` | `/admin/users/:id/active` | Activate or deactivate a user |
+| `DELETE` | `/admin/users/:id` | Deactivate a user |
+
+Admin user listing supports `page`, `limit`, `role`, `search`, and `isActive` query parameters.
+
 ## Response Format
 
 Successful responses generally use:
 
 ```json
 {
-	"status": "success",
-	"data": {}
+  "status": "success",
+  "data": {}
 }
 ```
 
@@ -199,8 +215,8 @@ Validation and application errors use an HTTP error status and:
 
 ```json
 {
-	"status": "fail",
-	"message": "Readable error message"
+  "status": "fail",
+  "message": "Readable error message"
 }
 ```
 
@@ -209,17 +225,21 @@ In development, server errors may also include a `stack` field.
 ## Project Structure
 
 ```text
-src/
-├── config/        Database configuration
-├── controllers/   Request handlers and business logic
-├── middlewares/   Authentication, roles, validation, and errors
-├── models/        Mongoose models
-├── routes/        Express route definitions
-├── seeds/         Admin and index maintenance scripts
-├── types/         TypeScript declarations
-├── utils/         Shared errors, tokens, email, and helpers
-├── app.ts         Express application setup
-└── server.ts      Database connection and HTTP server
+server/
+├── src/
+│   ├── config/        Database configuration
+│   ├── controllers/   Request handlers and business logic
+│   ├── middlewares/   Authentication, roles, and errors
+│   ├── models/        Mongoose models
+│   ├── routes/        Express route definitions
+│   ├── seeds/         Admin and index maintenance scripts
+│   ├── types/         TypeScript declarations
+│   ├── utils/         Shared errors, tokens, email, and helpers
+│   ├── app.ts         Express application setup
+│   └── server.ts      Database connection and HTTP server
+├── .env.example       Environment variable template
+├── package.json       Server scripts and dependencies
+└── tsconfig.json      TypeScript configuration
 ```
 
 ## License
