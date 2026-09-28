@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { z } from "zod";
 import Course, {
   type CourseStatus,
   type CourseLevel,
@@ -7,6 +6,12 @@ import Course, {
 import ApiError from "../utils/ApiError.js";
 import mongoose from "mongoose";
 import { getRouteParam } from "../utils/getRouteParam.js";
+import {
+  createCourseSchema,
+  getCoursesQuerySchema,
+  updateCourseSchema,
+  suspendCourseSchema
+} from "@learnify/shared";
 
 // ============ Types ============
 
@@ -28,55 +33,6 @@ interface GetCoursesQuery {
   search?: string;
 }
 
-// ============ Zod Schema ============
-
-const createCourseSchema = z
-  .object({
-    title: z
-      .string()
-      .trim()
-      .min(3, "Title must be at least 3 characters")
-      .max(100, "Title must be at most 100 characters"),
-    description: z
-      .string()
-      .trim()
-      .max(2000, "Description must be at most 2000 characters")
-      .optional(),
-    coverImage: z
-      .string()
-      .regex(/^https?:\/\/.+/, "Invalid image URL")
-      .optional(),
-    price: z.number().min(0, "Price must be a positive number"),
-    subject: z
-      .string()
-      .trim()
-      .max(100, "Subject must be at most 100 characters")
-      .optional(),
-    level: z.enum(["beginner", "intermediate", "advanced"]),
-  })
-  .strict();
-
-const suspendCourseSchema = z
-  .object({
-    reason: z
-      .string()
-      .trim()
-      .min(10, "Suspension reason must be at least 10 characters")
-      .max(500, "Suspension reason must be at most 500 characters"),
-  })
-  .strict();
-
-const updateCourseSchema = createCourseSchema.partial();
-
-const getCoursesSchema = z.object({
-  page: z.coerce.number().int().min(1).max(100).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
-  subject: z.string().optional(),
-  level: z.enum(["beginner", "intermediate", "advanced"]).optional(),
-  sort: z.string().default("createdAt"),
-  search: z.string().optional(),
-});
-
 // ============ Parser ============
 
 const parseCreateCourseBody = (raw: unknown): CreateCourseInput => {
@@ -91,7 +47,7 @@ const parseCreateCourseBody = (raw: unknown): CreateCourseInput => {
 };
 
 const parseGetCoursesQuery = (raw: unknown): GetCoursesQuery => {
-  const parsed = getCoursesSchema.safeParse(raw);
+  const parsed = getCoursesQuerySchema.safeParse(raw);
 
   if (!parsed.success) {
     const firstError = parsed.error.issues[0];

@@ -8,6 +8,7 @@ import courseRoutes from "./routes/courseRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import { notFound, globalErrorHandler } from "./middlewares/errorMiddleware.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes";
+import cookieParser from "cookie-parser";
 
 
 const app = express();
@@ -27,6 +28,7 @@ app.use(
 
 // 3. Body parsing
 app.use(express.json({ limit: "10kb" }));
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 // 4. Rate limiting

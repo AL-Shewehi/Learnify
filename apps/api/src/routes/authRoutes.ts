@@ -10,6 +10,7 @@ import {
   changePassword,
   updateMe,
   deleteMe,
+  logout,
 } from "../controllers/authController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 
@@ -20,6 +21,7 @@ router.post("/signup", signup);
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
+router.post("/logout", logout);
 
 // Protected
 router.get("/me", protect, getMe);

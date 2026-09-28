@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { z } from "zod";
 import Enrollment from "../models/Enrollment.js";
 import Course from "../models/Course.js";
 import ApiError from "../utils/ApiError.js";
 import { getRouteParam } from "../utils/getRouteParam.js";
+import { createEnrollmentSchema, getMyEnrollmentsQuerySchema, updateProgressSchema } from "@learnify/shared";
 
 // ============ Types ============
 
@@ -11,29 +11,6 @@ interface CreateEnrollmentInput {
   couponCode?: string;
 }
 
-// ============ Zod Schema ============
-
-const createEnrollmentSchema = z
-  .object({
-    couponCode: z.string().trim().optional(),
-  })
-  .strict();
-
-const getMyEnrollmentsSchema = z.object({
-  status: z.enum(["active", "completed", "dropped"]).optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(50).default(10),
-});
-
-const updateProgressSchema = z
-  .object({
-    progress: z
-      .number()
-      .int("Progress must be an integer")
-      .min(0, "Progress cannot be negative")
-      .max(100, "Progress cannot exceed 100"),
-  })
-  .strict();
 
 // ============ Parser ============
 
@@ -48,7 +25,7 @@ const parseCreateEnrollmentBody = (raw: unknown): CreateEnrollmentInput => {
 };
 
 const parsegetMyEnrollmentsSchema = (raw: unknown) => {
-  const parsed = getMyEnrollmentsSchema.safeParse(raw);
+  const parsed = getMyEnrollmentsQuerySchema.safeParse(raw);
   if (!parsed.success) {
     throw new ApiError(parsed.error.issues[0].message, 400);
   }

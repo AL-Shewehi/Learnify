@@ -1,12 +1,20 @@
 import { Request, Response } from "express";
 import crypto from "crypto";
-import { z } from "zod";
 import User, { type IUser, type UserRole } from "../models/User.js";
 import ApiError from "../utils/ApiError.js";
 import generateToken from "../utils/generateToken.js";
 import sendEmail from "../utils/sendEmail.js";
 import { getRouteParam } from "../utils/getRouteParam.js";
 import Course from "../models/Course.js";
+import { clearAuthCookie, setAuthCookie } from "../utils/authCookie.js";
+import {
+  changePasswordSchema,
+  forgotPasswordSchema,
+  loginSchema,
+  resetPasswordSchema,
+  signupSchema,
+  updateMeSchema,
+} from "@learnify/shared";
 
 // ============ Types ============
 
@@ -28,67 +36,6 @@ interface UserResponse {
   email: string;
   role: UserRole;
 }
-
-// ============ Zod Schemas ============
-
-const signupSchema = z
-  .object({
-    name: z.string().min(3).max(50).trim(),
-    email: z.string().email().trim().toLowerCase(),
-    password: z.string().min(8),
-    role: z.enum(["student", "instructor"]).optional(),
-  })
-  .strict();
-
-const loginSchema = z
-  .object({
-    email: z.string().email().trim().toLowerCase(),
-    password: z.string().min(8),
-  })
-  .strict();
-
-const forgotPasswordSchema = z
-  .object({ email: z.string().email().trim().toLowerCase() })
-  .strict();
-
-const resetPasswordSchema = z
-  .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z
-      .string()
-      .min(8, "Confirm Password must be at least 8 characters"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-const changePasswordSchema = z
-  .object({
-    currentPassword: z
-      .string()
-      .min(8, "Current Password must be at least 8 characters"),
-    newPassword: z
-      .string()
-      .min(8, "New Password must be at least 8 characters"),
-    confirmNewPassword: z
-      .string()
-      .min(8, "Confirm New Password must be at least 8 characters"),
-  })
-  .refine((data) => data.newPassword === data.confirmNewPassword, {
-    message: "New passwords do not match",
-    path: ["confirmNewPassword"],
-  });
-
-const updateMeSchema = z
-  .object({
-    name: z.string().min(3).max(50).trim().optional(),
-    email: z.string().email().trim().toLowerCase().optional(),
-  })
-  .strict()
-  .refine((data) => data.name !== undefined || data.email !== undefined, {
-    message: "Please provide at least one field to update",
-  });
 
 // ============ Parsers ============
 
@@ -157,7 +104,9 @@ const sendTokenResponse = (
   statusCode: number,
   res: Response,
 ): void => {
-  const token = generateToken(user._id.toString());
+  const token = generateToken(user._id.toString(), user.role);
+
+  setAuthCookie(res, token);
   res.status(statusCode).json({
     status: "success",
     token,
@@ -318,10 +267,7 @@ export const changePassword = async (
   sendTokenResponse(user, 200, res);
 };
 
-export const updateMe = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const updateMe = async (req: Request, res: Response): Promise<void> => {
   if (!req.user) {
     throw new ApiError("User not authenticated", 401);
   }
@@ -359,10 +305,7 @@ export const updateMe = async (
   });
 };
 
-export const deleteMe = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const deleteMe = async (req: Request, res: Response): Promise<void> => {
   if (!req.user) {
     throw new ApiError("User not authenticated", 401);
   }
@@ -395,5 +338,13 @@ export const deleteMe = async (
   res.status(200).json({
     status: "success",
     message: "Your account has been deactivated",
+  });
+};
+
+export const logout = async (_req: Request, res: Response): Promise<void> => {
+  clearAuthCookie(res);
+  res.status(200).json({
+    status: "success",
+    message: "Logged out successfully",
   });
 };

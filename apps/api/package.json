@@ -1,5 +1,5 @@
 {
-  "name": "lms-backend",
+  "name": "@learnify/api",
   "version": "1.0.0",
   "description": "Learning Management System API",
   "main": "src/server.ts",
@@ -22,7 +22,9 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@learnify/shared": "workspace:*",
     "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^18.0.2",
     "express": "^5.2.1",
@@ -38,6 +40,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",

@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import User, { type UserRole } from "../models/User.js";
 import ApiError from "../utils/ApiError.js";
+import { AUTH_COOKIE_NAME } from "../utils/authCookie.js";
 
 interface TokenPayload {
   id: string;
@@ -9,12 +10,14 @@ interface TokenPayload {
 }
 
 // Helpers
-const getTokenFromHeader = (req: Request): string | null => {
+const getTokenFromRequest = (req: Request): string | null => {
   const header = req.headers.authorization;
   if (header && header.startsWith("Bearer ")) {
     return header.split(" ")[1] ?? null;
   }
-  return null;
+
+  const cookieToken = req.cookies?.[AUTH_COOKIE_NAME];
+  return typeof cookieToken === "string" ? cookieToken : null;
 };
 
 const extractTokenPayload = (decoded: JwtPayload | string): TokenPayload | null => {
@@ -44,7 +47,7 @@ export const protect = async (
   _res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  const token = getTokenFromHeader(req);
+  const token = getTokenFromRequest(req);
 
   if (!token) {
     throw new ApiError("Not authorized to access this route", 401);
@@ -109,7 +112,7 @@ export const restrictTo =
   };
 
 export const optionalAuth = async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
-  const token = getTokenFromHeader(req);
+  const token = getTokenFromRequest(req);
 
   if (!token) {
     return next();

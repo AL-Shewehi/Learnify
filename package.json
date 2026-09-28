@@ -1,0 +1,16 @@
+{
+  "name": "learnify",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Learnify - Modern LMS Platform",
+  "scripts": {
+    "dev": "concurrently -n shared,api,web -c yellow,blue,green \"pnpm --filter @learnify/shared dev\" \"pnpm --filter @learnify/api dev\" \"pnpm --filter @learnify/web dev\"",
+    "dev:api": "pnpm --filter @learnify/api dev",
+    "dev:web": "pnpm --filter @learnify/web dev",
+    "build": "pnpm --filter @learnify/shared build && pnpm -r --filter \"!@learnify/shared\" build",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

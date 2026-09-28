@@ -1,36 +1,11 @@
 import { Request, Response } from "express";
-import { z } from "zod";
 import User, { type UserRole } from "../models/User";
 import Course from "../models/Course";
 import Enrollment from "../models/Enrollment";
 import ApiError from "../utils/ApiError";
 import { getRouteParam } from "../utils/getRouteParam";
+import { getUsersQuerySchema, toggleUserActiveSchema, updateUserRoleSchema } from "@learnify/shared";
 
-// ============ Schemas ============
-const getUsersQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-  role: z.enum(["student", "instructor", "admin"]).optional(),
-  search: z.string().optional(),
-  isActive: z
-    .enum(["true", "false"])
-    .optional()
-    .transform((val) =>
-      val === "true" ? true : val === "false" ? false : undefined,
-    ),
-});
-
-const updateUserRoleSchema = z
-  .object({
-    role: z.enum(["student", "instructor", "admin"]),
-  })
-  .strict();
-
-const toggleUserActiveSchema = z
-  .object({
-    isActive: z.boolean(),
-  })
-  .strict();
 
 // ============ Controllers ============
 
@@ -204,6 +179,7 @@ export const updateUserRole = async (
   }
 
   user.role = role as UserRole;
+  user.passwordChangedAt = new Date();
   await user.save();
 
   res.status(200).json({
