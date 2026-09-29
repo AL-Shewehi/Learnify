@@ -11,7 +11,8 @@
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "seed:admin": "tsx src/seeds/createAdmin.ts",
-    "fix:indexes": "tsx src/seeds/fixIndexes.ts"
+    "fix:indexes": "tsx src/seeds/fixIndexes.ts",
+    "seed:courses": "tsx src/seeds/seedCourses.ts"
   },
   "keywords": [
     "lms",
