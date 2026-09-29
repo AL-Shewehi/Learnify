@@ -1,4 +1,4 @@
-import { COURSE_LEVELS, COURSE_STATUSES } from "../constants/index.js";
+import { COURSE_LEVELS, COURSE_STATUSES, type CourseSubject } from "../constants/index.js";
 
 export type CourseStatus = (typeof COURSE_STATUSES)[number];
 export type CourseLevel = (typeof COURSE_LEVELS)[number];
@@ -15,7 +15,7 @@ export interface CourseResponse {
   description?: string;
   coverImage?: string;
   price: number;
-  subject?: string;
+  subject?: CourseSubject;
   status: CourseStatus;
   level: CourseLevel;
   language: string;
@@ -28,3 +28,4 @@ export interface CourseResponse {
   createdAt: string;
   updatedAt: string;
 }
+

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { COURSE_LEVELS } from "../constants/index.js";
+import { COURSE_LEVELS, COURSE_SUBJECTS } from "../constants/index.js";
 
 export const createCourseSchema = z
   .object({
@@ -18,11 +18,7 @@ export const createCourseSchema = z
       .regex(/^https?:\/\/.+/, "Invalid image URL")
       .optional(),
     price: z.number().min(0, "Price must be a positive number"),
-    subject: z
-      .string()
-      .trim()
-      .max(100, "Subject must be at most 100 characters")
-      .optional(),
+    subject: z.enum(COURSE_SUBJECTS),
     level: z.enum(["beginner", "intermediate", "advanced"]),
   })
   .strict();

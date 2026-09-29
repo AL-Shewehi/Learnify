@@ -10,7 +10,8 @@ import {
   createCourseSchema,
   getCoursesQuerySchema,
   updateCourseSchema,
-  suspendCourseSchema
+  suspendCourseSchema,
+  GetCoursesQuery
 } from "@learnify/shared";
 
 // ============ Types ============
@@ -24,14 +25,7 @@ interface CreateCourseInput {
   level: CourseLevel;
 }
 
-interface GetCoursesQuery {
-  page: number;
-  limit: number;
-  subject?: string;
-  level?: CourseLevel;
-  sort: string;
-  search?: string;
-}
+
 
 // ============ Parser ============
 
