@@ -1,10 +1,20 @@
-# Learnify API
+# Learnify
 
-Backend API for a Learning Management System (LMS). Learnify provides JWT-based authentication, role-based access control, course management, student enrollment, progress tracking, and admin operations.
+Modern Learning Management System (LMS) platform. Learnify provides JWT-based authentication, role-based access control, course management, student enrollment, progress tracking, and admin operations — with an Express API, a Next.js frontend, and a shared validation/types package.
 
-The backend lives in the `server/` directory.
+## Monorepo Layout
+
+```text
+apps/api/          Express + MongoDB API (@learnify/api)
+apps/web/          Next.js frontend (@learnify/web)
+packages/shared/   Shared Zod schemas, types and constants (@learnify/shared)
+```
+
+`pnpm-workspace.yaml` includes `apps/*` and `packages/*`. The single root `pnpm-lock.yaml` is the source of truth — do not commit nested lockfiles.
 
 ## Features
+
+### API (`apps/api`)
 
 - User signup, login, profile management, password changes, and password reset
 - Three roles: `student`, `instructor`, and `admin`
@@ -12,44 +22,75 @@ The backend lives in the `server/` directory.
 - Student enrollment and progress tracking
 - Instructor and admin enrollment statistics
 - MongoDB persistence with Mongoose
-- Request validation with Zod
+- Request validation with Zod (via `@learnify/shared`)
 - Security middleware with Helmet, CORS, and rate limiting
 - Centralized API error handling
 
+### Web (`apps/web`)
+
+- Auth flow: login, signup, forgot/reset password, session sync
+- Route guards via `proxy.ts`: guest-only pages, protected pages, role guards (`/admin`, `/instructor`)
+- Courses browsing with subject/level filters, search, pagination, and course details
+- Landing sections, shared layout, UI kit, React Query provider, and Axios API client
+- Consumes the same Zod schemas/types from `@learnify/shared`
+
+### Shared (`packages/shared`)
+
+- Constants: `USER_ROLES`, `COURSE_STATUSES`, `COURSE_LEVELS`, `ENROLLMENT_STATUSES`, `COURSE_SUBJECTS` (+ `CourseSubject` type)
+- Zod schemas: auth, course, enrollment, admin
+- Inferred TypeScript types for API requests/responses
+
+Course subjects are a strict enum: `Programming`, `Design`, `Business`, `Data`, `Writing`, `Marketing`, `Photography`, `Music`, `Health`, `Personal Development`, `Education`.
+
 ## Tech Stack
 
-Node.js, TypeScript, Express 5, MongoDB, Mongoose, JWT, Zod, and pnpm.
+- **API:** Node.js, TypeScript, Express 5, MongoDB, Mongoose, JWT, Zod, pnpm
+- **Web:** Next.js 16, React 19, Tailwind CSS 4, React Hook Form, TanStack Query, Axios, Zustand, jose
+- **Shared:** TypeScript, Zod, tsup
 
 ## Requirements
 
 - Node.js 20 or newer
-- pnpm
+- pnpm 11 (see `packageManager` in `apps/web/package.json`)
 - A MongoDB database, local or MongoDB Atlas
 
 ## Getting Started
 
 ```bash
 git clone https://github.com/AL-Shewehi/Learnify.git
-cd Learnify/server
+cd Learnify
 pnpm install
-cp .env.example .env
+cp apps/api/.env.example apps/api/.env
 ```
 
-Update `.env` with your MongoDB connection string and JWT secret, then start the development server:
+Create `apps/web/.env.local` (see Environment Variables below), then run everything from the repo root:
 
 ```bash
 pnpm dev
 ```
 
-The API runs at `http://localhost:5000` by default. Verify it is running with:
+- API runs at `http://localhost:5000` by default. Verify with:
+  ```bash
+  curl http://localhost:5000/health
+  ```
+- Web runs at `http://localhost:3000`.
+
+To run packages individually:
 
 ```bash
-curl http://localhost:5000/health
+pnpm dev:api
+pnpm dev:web
+```
+
+Build all packages (shared first):
+
+```bash
+pnpm build
 ```
 
 ## Environment Variables
 
-Create a `.env` file in the project root:
+### API (`apps/api/.env`)
 
 ```env
 NODE_ENV=development
@@ -72,7 +113,28 @@ EMAIL_FROM=Learnify <noreply@example.com>
 
 Never commit `.env` or production secrets. When `DEVELOPMENT=true`, password-reset email content is logged to the server console instead of being sent.
 
+### Web (`apps/web/.env.local`)
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
+JWT_SECRET=replace-with-the-same-jwt-secret-used-by-the-api
+```
+
+`NEXT_PUBLIC_API_URL` points the Axios client at the API. `JWT_SECRET` is used by the Next.js proxy to verify the `learnify_token` cookie for route guards. Never commit `.env.local` or real secrets.
+
 ## Available Commands
+
+### Root
+
+| Command          | Description                                        |
+| ---------------- | -------------------------------------------------- |
+| `pnpm dev`       | Run shared, api, and web together with watch mode  |
+| `pnpm dev:api`   | Run only the API                                   |
+| `pnpm dev:web`   | Run only the web frontend                          |
+| `pnpm build`     | Build shared first, then api and web               |
+| `pnpm lint`      | Lint all workspace packages                        |
+
+### API (`pnpm --filter @learnify/api <cmd>`)
 
 | Command            | Description                            |
 | ------------------ | -------------------------------------- |
@@ -83,15 +145,33 @@ Never commit `.env` or production secrets. When `DEVELOPMENT=true`, password-res
 | `pnpm lint:fix`    | Automatically fix ESLint issues        |
 | `pnpm clean`       | Remove the compiled output             |
 | `pnpm seed:admin`  | Create the default admin account       |
+| `pnpm seed:courses`| Seed 13 sample courses                 |
 | `pnpm fix:indexes` | Rebuild Course MongoDB indexes         |
 
-After configuring MongoDB, you can create an admin account with:
+After configuring MongoDB, you can seed data with:
 
 ```bash
-pnpm seed:admin
+pnpm --filter @learnify/api seed:admin
+pnpm --filter @learnify/api seed:courses
 ```
 
-The seed currently creates `admin@lms.com` with password `Admin@12345`. Change this password immediately in any non-local environment.
+The admin seed currently creates `admin@lms.com` with password `Admin@12345`. Change this password immediately in any non-local environment. The courses seed creates 13 published courses across Programming, Design, Business, Data, and Writing, assigned to an instructor account.
+
+### Web (`pnpm --filter @learnify/web <cmd>`)
+
+| Command      | Description                 |
+| ------------ | --------------------------- |
+| `pnpm dev`   | Run Next.js in dev mode     |
+| `pnpm build` | Production build            |
+| `pnpm start` | Run the production server   |
+| `pnpm lint`  | Check the source with ESLint|
+
+### Shared (`pnpm --filter @learnify/shared <cmd>`)
+
+| Command      | Description              |
+| ------------ | ------------------------ |
+| `pnpm dev`   | Watch-build with tsup    |
+| `pnpm build` | Build to `dist/`         |
 
 ## API Overview
 
@@ -150,7 +230,7 @@ Signup accepts `student` or `instructor`. Admin users should be created through 
 | `PATCH`  | `/courses/:id/suspend`   | Admin                 |
 | `PATCH`  | `/courses/:id/activate`  | Admin                 |
 
-Create a course with `title`, `price`, and `level`. The allowed levels are `beginner`, `intermediate`, and `advanced`.
+Create a course with `title`, `price`, `subject`, and `level`. Subjects must be one of `COURSE_SUBJECTS` and levels are `beginner`, `intermediate`, and `advanced`.
 
 ```bash
 curl -X POST http://localhost:5000/api/v1/courses \
@@ -225,21 +305,33 @@ In development, server errors may also include a `stack` field.
 ## Project Structure
 
 ```text
-server/
-├── src/
-│   ├── config/        Database configuration
-│   ├── controllers/   Request handlers and business logic
-│   ├── middlewares/   Authentication, roles, and errors
-│   ├── models/        Mongoose models
-│   ├── routes/        Express route definitions
-│   ├── seeds/         Admin and index maintenance scripts
-│   ├── types/         TypeScript declarations
-│   ├── utils/         Shared errors, tokens, email, and helpers
-│   ├── app.ts         Express application setup
-│   └── server.ts      Database connection and HTTP server
-├── .env.example       Environment variable template
-├── package.json       Server scripts and dependencies
-└── tsconfig.json      TypeScript configuration
+apps/api/src/
+├── config/        Database configuration
+├── controllers/   Request handlers and business logic
+├── middlewares/   Authentication, roles, and errors
+├── models/        Mongoose models
+├── routes/        Express route definitions
+├── seeds/         Admin, course, and index maintenance scripts
+├── types/         TypeScript declarations
+├── utils/         Shared errors, tokens, email, and helpers
+├── app.ts         Express application setup
+└── server.ts      Database connection and HTTP server
+
+apps/web/src/
+├── app/           Next.js routes (main, auth, instructor, admin)
+├── components/    UI kit, forms, and layout
+├── features/      Auth, courses, and landing modules
+├── hooks/         Shared React hooks
+├── lib/           Axios client and utilities
+├── providers/     React Query provider
+├── proxy.ts       Auth and role route guards
+└── types/         Frontend API types
+
+packages/shared/src/
+├── constants/     Roles, statuses, levels, and subjects
+├── schemas/       Zod schemas (auth, course, enrollment, admin)
+├── types/         Shared TypeScript types
+└── index.ts       Package entry point
 ```
 
 ## License
