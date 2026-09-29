@@ -1,0 +1,15 @@
+"use client"
+import { useMutation } from "@tanstack/react-query"
+import { authApi } from "../api/auth-api"
+import { useAuthStore } from "../store/auth-store"
+
+export function useLogout() {
+    const setUser = useAuthStore((state) => state.setUser)
+
+    return useMutation({
+        mutationFn: () => authApi.logout(),
+        onSuccess: () => {
+            setUser(null)
+        }
+    })
+}

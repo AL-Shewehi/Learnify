@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+/* ============ Light Theme (Default) ============ */
+@layer base {
+  :root {
+    /* Coral-led brand palette */
+    --background: #fffaf7;
+    --foreground: #241613;
+
+    --card: #ffffff;
+    --card-foreground: #241613;
+
+    --popover: #ffffff;
+    --popover-foreground: #241613;
+
+    --primary: #c94c2c;
+    --primary-foreground: #fffaf7;
+
+    --secondary: #ffe7de;
+    --secondary-foreground: #3a1710;
+
+    --muted: #f8eee9;
+    --muted-foreground: #765f57;
+
+    --accent: #ffe7de;
+    --accent-foreground: #3a1710;
+
+    --destructive: #b3261e;
+    --destructive-foreground: #faf9f6;
+
+    --border: #ecd8d0;
+    --input: #dfc3b9;
+    --ring: #c94c2c;
+
+    --radius: 0.375rem;
+
+    /*  Role Colors */
+    --role-student: oklch(0.546 0.207 262.88);
+    --role-student-bg: oklch(0.932 0.032 255.59);
+    --role-student-foreground: oklch(0.424 0.184 265.64);
+
+    --role-instructor: oklch(0.511 0.196 287.1);
+    --role-instructor-bg: oklch(0.925 0.04 287.1);
+    --role-instructor-foreground: oklch(0.438 0.172 285.82);
+
+    --role-admin: oklch(0.577 0.245 27.33);
+    --role-admin-bg: oklch(0.936 0.032 17.72);
+    --role-admin-foreground: oklch(0.505 0.213 27.52);
+
+    /*  Chart Colors (for future) */
+    --chart-1: oklch(0.488 0.207 264.38);
+    --chart-2: oklch(0.6 0.19 160);
+    --chart-3: oklch(0.7 0.15 50);
+    --chart-4: oklch(0.65 0.2 330);
+    --chart-5: oklch(0.75 0.15 90);
+  }
+
+  .dark {
+    --background: #171b19;
+    --foreground: #f3f1eb;
+
+    --card: #202622;
+    --card-foreground: #f3f1eb;
+
+    --popover: #202622;
+    --popover-foreground: #f3f1eb;
+
+    --primary: #ff8b68;
+    --primary-foreground: #35140b;
+
+    --secondary: #4a2923;
+    --secondary-foreground: #fff0e9;
+
+    --muted: #35221f;
+    --muted-foreground: #d2b3a8;
+
+    --accent: #593027;
+    --accent-foreground: #fff0e9;
+
+    --destructive: #f08a82;
+    --destructive-foreground: #26100e;
+
+    --border: #684137;
+    --input: #795043;
+    --ring: #ff8b68;
+  }
+}
+
+/* ============ Tailwind v4 Theme Integration ============ */
+@theme inline {
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-fraunces);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-role-student: var(--role-student);
+  --color-role-student-bg: var(--role-student-bg);
+  --color-role-student-foreground: var(--role-student-foreground);
+
+  --color-role-instructor: var(--role-instructor);
+  --color-role-instructor-bg: var(--role-instructor-bg);
+  --color-role-instructor-foreground: var(--role-instructor-foreground);
+
+  --color-role-admin: var(--role-admin);
+  --color-role-admin-bg: var(--role-admin-bg);
+  --color-role-admin-foreground: var(--role-admin-foreground);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+}
+
+/* ============ Base Styles ============ */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--muted);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+  }
+}
+
+/* ============ Utility Classes ============ */
+@layer utilities {
+  .gradient-brand {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass {
+    backdrop-filter: blur(12px);
+    background: color-mix(in oklch, var(--background) 80%, transparent);
+  }
+
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background;
+  }
+}
