@@ -1,9 +1,7 @@
-import React from 'react'
+import { MyLearning } from "@/features/enrollments";
 
-function page() {
-  return (
-    <div>page</div>
-  )
+export const metadata = { title: "My Learning | Learnify" };
+
+export default function MyLearningPage() {
+  return <MyLearning />;
 }
-
-export default page

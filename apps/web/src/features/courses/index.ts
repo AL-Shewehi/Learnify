@@ -3,6 +3,7 @@ export { useCourses } from "./hooks/use-courses";
 export { useCourse } from "./hooks/use-course";
 export { CourseCard } from "./components/course-card";
 export { CourseCardSkeleton } from "./components/course-card-skeleton";
+export { CourseCover } from "./components/course-cover";
 export { CoursesBrowser } from "./components/courses-browser";
 export { CourseFiltersBar } from "./components/course-filters-bar";
 export { Pagination } from "./components/pagination";

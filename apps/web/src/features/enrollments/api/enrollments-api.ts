@@ -9,4 +9,11 @@ export const enrollmentsApi = {
         data: { enrollment: EnrollmentResponse };
       }>(`/courses/${courseId}/enroll`, {})
       .then((r) => r.data.data.enrollment),
+    myEnrollments: (): Promise<EnrollmentResponse[]> =>
+      api.get<{
+        status: "success";
+        results: number;
+        data: { enrollments: EnrollmentResponse[] };
+      }>("/enrollments/me", {})
+      .then((r) => r.data.data.enrollments),
 };
