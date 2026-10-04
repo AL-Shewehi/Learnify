@@ -285,7 +285,11 @@ export const publishCourse = async (
     throw new ApiError("Course is already published", 400);
   }
 
-  if (!course.title || !course.price) {
+  if (
+    !course.title?.trim() ||
+    course.price === null ||
+    course.price === undefined
+  ) {
     throw new ApiError(
       "Course must have title and price before publishing",
       400,
