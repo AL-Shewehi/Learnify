@@ -1,9 +1,19 @@
-import React from 'react'
+import { CourseDetailsPage } from "@/features/courses";
 
-function page() {
-  return (
-    <div>page</div>
-  )
+interface Props {
+  params: Promise<{ courseId: string }>;
 }
 
-export default page
+export default async function CourseDetails({ params }: Props) {
+  const { courseId } = await params;
+
+  return <CourseDetailsPage courseId={courseId} />;
+}
+
+export async function generateMetadata({ params }: Props) {
+  const { courseId } = await params;
+  return {
+    title: `Course ${courseId} | Learnify`,
+    description: "Course details on Learnify.",
+  };
+}

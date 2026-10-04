@@ -29,7 +29,8 @@ export type FormFieldType =
   | "number"
   | "tel"
   | "url"
-  | "select";
+  | "select"
+  | "textarea";
 
 export interface FormFieldProps<T extends FieldValues> {
   name: Path<T>;
@@ -89,13 +90,27 @@ export function FormField<T extends FieldValues>({
             </Select>
           )}
         />
+      ) : type === "textarea" ? (
+        <textarea
+          id={name}
+          placeholder={placeholder}
+          rows={6}
+          {...register(name)}
+          className={cn(
+            "flex w-full rounded-lg border bg-background px-3 py-2 text-sm",
+            "placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring",
+            hasError
+              ? "border-destructive focus:ring-destructive"
+              : "border-input",
+          )}
+        />
       ) : (
         <Input
           id={name}
           type={type}
           placeholder={placeholder}
           hasError={hasError}
-          {...register(name)}
+          {...register(name, type === "number" ? { valueAsNumber: true } : {})}
         />
       )}
 

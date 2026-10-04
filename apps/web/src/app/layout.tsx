@@ -3,6 +3,7 @@ import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
 import { SessionSync } from "@/features/auth";
 import { Fraunces, Inter } from "next/font/google";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const fraunces = Fraunces({
@@ -26,7 +27,17 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${fraunces.variable} ${inter.className}`}
       >
-        {" "}
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: "var(--background)",
+              border: "1px solid var(--color-border)",
+              color: "var(--foreground)",
+              fontFamily: "var(--font-inter)",
+            },
+          }}
+        />
         <SessionSync />
         <QueryProvider>{children}</QueryProvider>
       </body>

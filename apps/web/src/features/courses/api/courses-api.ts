@@ -19,4 +19,12 @@ export const coursesApi = {
         courses: r.data.data.courses,
         pagination: r.data.pagination,
       })),
+
+    getById: (id: string): Promise<CourseResponse> =>
+    api
+      .get<{
+        status: "success";
+        data: { course: CourseResponse };
+      }>(`/courses/${id}`)
+      .then((r) => r.data.data.course),
 };
