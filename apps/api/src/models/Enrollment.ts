@@ -24,6 +24,9 @@ export interface IEnrollment extends Document {
   drop(): Promise<IEnrollment>;
   updateProgress(newProgress: number): Promise<IEnrollment>;
   updateLastAccessed(): Promise<IEnrollment>;
+  completedLessons: Types.ObjectId[];
+  markLessonComplete(lessonId: Types.ObjectId | string): Promise<IEnrollment>;
+  recalculateProgress(): Promise<IEnrollment>;
 }
 
 export interface IEnrollmentModel extends Model<IEnrollment> {
@@ -62,6 +65,11 @@ const enrollmentSchema = new Schema<IEnrollment>(
       ref: "Course",
       required: [true, "Course is required"],
       index: true,
+    },
+    completedLessons: {
+      type: [Schema.Types.ObjectId],
+      ref: "Lesson",
+      default: [],
     },
     enrolledAt: {
       type: Date,
@@ -207,13 +215,70 @@ enrollmentSchema.methods.updateProgress = async function (
   return this.save();
 };
 
-
 enrollmentSchema.methods.updateLastAccessed =
   async function (): Promise<IEnrollment> {
     this.lastAccessedAt = new Date();
     return this.save();
   };
 
+enrollmentSchema.methods.markLessonComplete = async function (
+  lessonId: Types.ObjectId | string,
+): Promise<IEnrollment> {
+  const Lesson = mongoose.model("Lesson");
+
+  const already = this.completedLessons.some(
+    (id: Types.ObjectId) => id.toString() === lessonId.toString(),
+  );
+  if (!already) {
+    this.completedLessons.push(new Types.ObjectId(lessonId.toString()));
+  }
+
+  const total = await Lesson.countDocuments({ course: this.course });
+  this.progress =
+    total === 0
+      ? 0
+      : Math.min(100, Math.round((this.completedLessons.length / total) * 100));
+
+  if (this.progress >= 100 && this.status !== "completed") {
+    return this.complete();
+  }
+
+  if (this.status === "completed") {
+    this.status = "active";
+    this.completedAt = undefined;
+  }
+
+  return this.save();
+};
+
+enrollmentSchema.methods.recalculateProgress =
+  async function (): Promise<IEnrollment> {
+    const Lesson = mongoose.model("Lesson");
+    const lessonIds = await Lesson.distinct("_id", { course: this.course });
+    const availableIds = new Set(
+      lessonIds.map((id: Types.ObjectId) => id.toString()),
+    );
+
+    this.completedLessons = this.completedLessons.filter((id: Types.ObjectId) =>
+      availableIds.has(id.toString()),
+    );
+    this.progress = lessonIds.length
+      ? Math.min(
+          100,
+          Math.round((this.completedLessons.length / lessonIds.length) * 100),
+        )
+      : 0;
+
+    if (this.progress === 100 && lessonIds.length > 0) {
+      this.status = "completed";
+      this.completedAt ??= new Date();
+    } else if (this.status === "completed") {
+      this.status = "active";
+      this.completedAt = undefined;
+    }
+
+    return this.save();
+  };
 // ============ Static Methods ============
 
 enrollmentSchema.statics.findByStudent = function (

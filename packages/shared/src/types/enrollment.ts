@@ -8,6 +8,7 @@ export interface EnrollmentResponse {
   _id: string;
   student: string | UserResponse;
   course: string | CourseResponse;
+  completedLessons: string[];
   status: EnrollmentStatus;
   price: number;
   discount: number;
@@ -17,4 +18,17 @@ export interface EnrollmentResponse {
   completedAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CourseStudentsStats {
+  active: number;
+  completed: number;
+  dropped: number;
+  averageProgress: number;
+}
+
+export interface CourseStudentsResponse {
+  enrollments: EnrollmentResponse[];
+  stats: CourseStudentsStats;
+  result: number;
 }

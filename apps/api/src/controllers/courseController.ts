@@ -11,7 +11,7 @@ import {
   getCoursesQuerySchema,
   updateCourseSchema,
   suspendCourseSchema,
-  GetCoursesQuery
+  GetCoursesQuery,
 } from "@learnify/shared";
 
 // ============ Types ============
@@ -24,8 +24,6 @@ interface CreateCourseInput {
   subject?: string;
   level: CourseLevel;
 }
-
-
 
 // ============ Parser ============
 
@@ -130,7 +128,11 @@ export const getCourses = async (
   const isAdmin = req.user?.role === "admin";
   const isInstructor = req.user?.role === "instructor";
 
-  if (isAdmin) {
+  const isMine = (req.query as Record<string, string>)?.mine === "true";
+
+  if (isMine && req.user) {
+    filter.instructor = req.user._id;
+  } else if (isAdmin) {
     //  Admin: يشوف كل حاجة — مفيش status filter
   } else if (isInstructor && req.user) {
     // Instructor: يشوف الـ published + كورساته الخاصة
@@ -196,10 +198,21 @@ export const getCourse = async (req: Request, res: Response): Promise<void> => {
     throw new ApiError("Course not found", 404);
   }
 
+  let isEnrolled = false;
+  if (req.user) {
+    const Enrollment = mongoose.model("Enrollment");
+    const count = await Enrollment.countDocuments({
+      student: req.user._id,
+      course: course._id,
+      status: { $in: ["active", "completed"] },
+    });
+    isEnrolled = count > 0;
+  }
+
   if (course.status === "published") {
     res.status(200).json({
       status: "success",
-      data: { course },
+      data: { course: { ...(course.toObject?.() ?? course), isEnrolled } },
     });
     return;
   }
@@ -217,7 +230,7 @@ export const getCourse = async (req: Request, res: Response): Promise<void> => {
 
   res.status(200).json({
     status: "success",
-    data: { course },
+    data: { course: { ...(course.toObject?.() ?? course), isEnrolled } },
   });
 };
 

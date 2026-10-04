@@ -9,16 +9,17 @@ import adminRoutes from "./routes/adminRoutes";
 import { notFound, globalErrorHandler } from "./middlewares/errorMiddleware.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes";
 import cookieParser from "cookie-parser";
+import lessonRoutes from "./routes/lessonRoutes.js";
+
+
 
 
 const app = express();
 
 // ============ Middlewares ============
 
-// 1. حماية الـ Headers
 app.use(helmet());
 
-// 2. CORS
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:3000",
@@ -26,12 +27,10 @@ app.use(
   }),
 );
 
-// 3. Body parsing
 app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
-// 4. Rate limiting
 const limiter = rateLimit({
   max: 100,
   windowMs: 15 * 60 * 1000,
@@ -39,7 +38,6 @@ const limiter = rateLimit({
 });
 app.use("/api", limiter);
 
-// 5. Logging في التطوير
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
@@ -57,7 +55,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/courses", courseRoutes);
 app.use("/api/v1", enrollmentRoutes);
 app.use("/api/v1/admin", adminRoutes);
-
+app.use("/api/v1", lessonRoutes);
 
 // ============ 404 + Error Handling ============
 app.use(notFound);

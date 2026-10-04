@@ -15,6 +15,11 @@ import {
   protect,
   restrictTo,
 } from "../middlewares/authMiddleware.js";
+import {
+  createLesson,
+  getCourseLessons,
+  reorderLessons,
+} from "../controllers/lessonController.js";
 
 const router = Router();
 
@@ -33,6 +38,20 @@ router.patch(
   protect,
   restrictTo("admin"),
   activateCourse,
+);
+
+router.get("/:courseId/lessons", optionalAuth, getCourseLessons);
+router.post(
+  "/:courseId/lessons",
+  protect,
+  restrictTo("instructor", "admin"),
+  createLesson,
+);
+router.patch(
+  "/:courseId/lessons/reorder",
+  protect,
+  restrictTo("instructor", "admin"),
+  reorderLessons,
 );
 
 export default router;
