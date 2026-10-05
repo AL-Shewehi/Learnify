@@ -9,3 +9,4 @@ export { SessionSync } from "./components/session-sync";
 export { useSession } from "./hooks/use-session";
 export { useLogout } from "./hooks/use-logout";
 export { useAuthStore } from "./store/auth-store";
+export { useAuth } from "./hooks/use-auth";
