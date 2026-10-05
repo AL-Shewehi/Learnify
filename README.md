@@ -1,339 +1,113 @@
 # Learnify
 
-Modern Learning Management System (LMS) platform. Learnify provides JWT-based authentication, role-based access control, course management, student enrollment, progress tracking, and admin operations — with an Express API, a Next.js frontend, and a shared validation/types package.
+A full-stack learning platform built as a **pnpm monorepo** — Express + MongoDB on one side, Next.js on the other, and a shared contract package holding the truth in between.
 
-## Monorepo Layout
+## Screenshots
 
-```text
-apps/api/          Express + MongoDB API (@learnify/api)
-apps/web/          Next.js frontend (@learnify/web)
-packages/shared/   Shared Zod schemas, types and constants (@learnify/shared)
+<!-- ضيف هنا 4-6 صور: landing، course details، player، instructor workspace، admin -->
+<!-- صور حقيقية من مشروعك بتبيع أكتر من أي كلام -->
+
+## What it does
+
+**Students** browse a catalog with URL-synced filters, watch free previews, check out paid courses with a mock payment gateway, and learn in a player that tracks progress lesson by lesson.
+
+**Instructors** run the full course lifecycle — draft → publish → unpublish — manage video/article lessons with reordering and free previews, and watch their students' progress in live stats.
+
+**Admins** moderate the platform: user roles, activation, course suspension, and platform-wide statistics.
+
+## Highlights
+
+- 🔐 **JWT sessions in httpOnly cookies** — tokens never touch `localStorage`; the web client can't leak what it can't read
+- 📦 **`packages/shared` as the single source of truth** — the same Zod schemas validate the request on the server and the form on the client
+- 🔗 **URL as state** — catalog filters live in the query string, so every view is shareable and back-button-safe
+- 📊 **Honest progress** — completion is derived from completed lessons on the server, never accepted from the client
+- 📰 **An editorial design system** — paper/ink/pine palette, serif display type, dotted-leader indexes and offset print shadows instead of the usual gradient-and-glow look
+
+## Tech stack
+
+| Layer | Choices |
+|---|---|
+| Backend | Express · Mongoose · Zod · jsonwebtoken · cookie-parser |
+| Frontend | Next.js (App Router) · TanStack Query · Zustand · React Hook Form · Tailwind v4 · Radix/shadcn |
+| Contract | `packages/shared` — Zod schemas, types & constants built with tsup |
+| Tooling | pnpm workspaces · Vitest + Supertest + mongodb-memory-server |
+
+## Architecture
+
+```
+learnify/
+├── apps/
+│   ├── api/          Express API — controllers, models, role middleware
+│   └── web/          Next.js app — feature-based folders, thin route pages
+├── packages/
+│   └── shared/       Zod schemas + TS types + constants (both sides import these)
+└── pnpm-workspace.yaml
 ```
 
-`pnpm-workspace.yaml` includes `apps/*` and `packages/*`. The single root `pnpm-lock.yaml` is the source of truth — do not commit nested lockfiles.
+**Auth flow:** login sets an `httpOnly` cookie → Next middleware reads the JWT for route guards (guest-only, protected, role-based) → the Express `protect` middleware re-validates against the database on every request. UX decisions at the edge, security decisions at the source.
 
-## Features
+**Progress flow:** `POST /lessons/:id/complete` appends to `enrollment.completedLessons` and recomputes `progress` server-side; hitting 100% flips the enrollment to `completed`.
 
-### API (`apps/api`)
+## Getting started
 
-- User signup, login, profile management, password changes, and password reset
-- Three roles: `student`, `instructor`, and `admin`
-- Course creation, publishing, suspension, activation, and search
-- Student enrollment and progress tracking
-- Instructor and admin enrollment statistics
-- MongoDB persistence with Mongoose
-- Request validation with Zod (via `@learnify/shared`)
-- Security middleware with Helmet, CORS, and rate limiting
-- Centralized API error handling
-
-### Web (`apps/web`)
-
-- Auth flow: login, signup, forgot/reset password, session sync
-- Route guards via `proxy.ts`: guest-only pages, protected pages, role guards (`/admin`, `/instructor`)
-- Courses browsing with subject/level filters, search, pagination, and course details
-- Landing sections, shared layout, UI kit, React Query provider, and Axios API client
-- Consumes the same Zod schemas/types from `@learnify/shared`
-
-### Shared (`packages/shared`)
-
-- Constants: `USER_ROLES`, `COURSE_STATUSES`, `COURSE_LEVELS`, `ENROLLMENT_STATUSES`, `COURSE_SUBJECTS` (+ `CourseSubject` type)
-- Zod schemas: auth, course, enrollment, admin
-- Inferred TypeScript types for API requests/responses
-
-Course subjects are a strict enum: `Programming`, `Design`, `Business`, `Data`, `Writing`, `Marketing`, `Photography`, `Music`, `Health`, `Personal Development`, `Education`.
-
-## Tech Stack
-
-- **API:** Node.js, TypeScript, Express 5, MongoDB, Mongoose, JWT, Zod, pnpm
-- **Web:** Next.js 16, React 19, Tailwind CSS 4, React Hook Form, TanStack Query, Axios, Zustand, jose
-- **Shared:** TypeScript, Zod, tsup
-
-## Requirements
-
-- Node.js 20 or newer
-- pnpm 11 (see `packageManager` in `apps/web/package.json`)
-- A MongoDB database, local or MongoDB Atlas
-
-## Getting Started
+**Prerequisites:** Node 20+, pnpm, MongoDB (local or Atlas).
 
 ```bash
-git clone https://github.com/AL-Shewehi/Learnify.git
-cd Learnify
 pnpm install
+
+# API env
 cp apps/api/.env.example apps/api/.env
+# MONGODB_URL, JWT_SECRET, JWT_EXPIRES_IN, CLIENT_URL, PORT
+
+# Web env
+cp apps/web/.env.example apps/web/.env.local
+# NEXT_PUBLIC_API_URL, JWT_SECRET (same secret — middleware verifies cookies)
+
+pnpm --filter @learnify/shared build
+pnpm --filter @learnify/api seed:courses   # optional demo catalog
+pnpm dev                                    # api :5000 + web :3000
 ```
 
-Create `apps/web/.env.local` (see Environment Variables below), then run everything from the repo root:
+Sign up from the UI, or promote a user to instructor/admin from the admin console. Paid courses accept the mock test card `4242 4242 4242 4242`.
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `pnpm dev` | Runs shared (watch) + api + web together |
+| `pnpm build` | Builds shared then both apps |
+| `pnpm --filter @learnify/api test` | API test suite on an in-memory MongoDB |
+| `pnpm --filter @learnify/api seed:courses` | Seeds a demo catalog |
+
+## API surface
+
+Grouped overview — the shared package and the test suite are the living reference.
+
+- **Auth** — signup · login · logout · me · forgot/reset · change password · update me · delete me
+- **Courses** — list (filters, pagination) · create · read (+`isEnrolled`) · update · delete · publish · unpublish · suspend · activate
+- **Lessons** — curriculum (preview-gated) · create · update · delete · reorder · read (access-gated) · complete
+- **Enrollments** — enroll (free) · checkout (mock gateway) · my enrollments · course roster + stats
+- **Admin** — stats · users (filters) · change role · toggle active · deactivate user
+
+## Testing
 
 ```bash
-pnpm dev
+pnpm --filter @learnify/api test
 ```
 
-- API runs at `http://localhost:5000` by default. Verify with:
-  ```bash
-  curl http://localhost:5000/health
-  ```
-- Web runs at `http://localhost:3000`.
+Vitest + Supertest against an in-memory MongoDB: auth sessions & cookies, the full course lifecycle (create → lesson → publish → enroll → complete), and checkout rules (402 on direct enroll for paid courses, test-card validation, receipts).
 
-To run packages individually:
+## Roadmap
 
-```bash
-pnpm dev:api
-pnpm dev:web
-```
+- [ ] Stripe test-mode payments replacing the mock gateway
+- [ ] Reviews & ratings
+- [ ] Curriculum sections
+- [ ] Mobile client consuming the same API contract
 
-Build all packages (shared first):
+## Design notes
 
-```bash
-pnpm build
-```
-
-## Environment Variables
-
-### API (`apps/api/.env`)
-
-```env
-NODE_ENV=development
-PORT=5000
-MONGODB_URL=mongodb://127.0.0.1:27017/learnify
-JWT_SECRET=replace-with-a-long-random-secret
-JWT_EXPIRES_IN=7d
-CLIENT_URL=http://localhost:3000
-
-# Set to true during local development to print reset emails in the terminal.
-DEVELOPMENT=true
-
-# Required for real email delivery when DEVELOPMENT is false.
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=your-smtp-user
-SMTP_PASS=your-smtp-password
-EMAIL_FROM=Learnify <noreply@example.com>
-```
-
-Never commit `.env` or production secrets. When `DEVELOPMENT=true`, password-reset email content is logged to the server console instead of being sent.
-
-### Web (`apps/web/.env.local`)
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
-JWT_SECRET=replace-with-the-same-jwt-secret-used-by-the-api
-```
-
-`NEXT_PUBLIC_API_URL` points the Axios client at the API. `JWT_SECRET` is used by the Next.js proxy to verify the `learnify_token` cookie for route guards. Never commit `.env.local` or real secrets.
-
-## Available Commands
-
-### Root
-
-| Command          | Description                                        |
-| ---------------- | -------------------------------------------------- |
-| `pnpm dev`       | Run shared, api, and web together with watch mode  |
-| `pnpm dev:api`   | Run only the API                                   |
-| `pnpm dev:web`   | Run only the web frontend                          |
-| `pnpm build`     | Build shared first, then api and web               |
-| `pnpm lint`      | Lint all workspace packages                        |
-
-### API (`pnpm --filter @learnify/api <cmd>`)
-
-| Command            | Description                            |
-| ------------------ | -------------------------------------- |
-| `pnpm dev`         | Run the API with TypeScript watch mode |
-| `pnpm build`       | Compile TypeScript to `dist/`          |
-| `pnpm start`       | Run the compiled production server     |
-| `pnpm lint`        | Check the source with ESLint           |
-| `pnpm lint:fix`    | Automatically fix ESLint issues        |
-| `pnpm clean`       | Remove the compiled output             |
-| `pnpm seed:admin`  | Create the default admin account       |
-| `pnpm seed:courses`| Seed 13 sample courses                 |
-| `pnpm fix:indexes` | Rebuild Course MongoDB indexes         |
-
-After configuring MongoDB, you can seed data with:
-
-```bash
-pnpm --filter @learnify/api seed:admin
-pnpm --filter @learnify/api seed:courses
-```
-
-The admin seed currently creates `admin@lms.com` with password `Admin@12345`. Change this password immediately in any non-local environment. The courses seed creates 13 published courses across Programming, Design, Business, Data, and Writing, assigned to an instructor account.
-
-### Web (`pnpm --filter @learnify/web <cmd>`)
-
-| Command      | Description                 |
-| ------------ | --------------------------- |
-| `pnpm dev`   | Run Next.js in dev mode     |
-| `pnpm build` | Production build            |
-| `pnpm start` | Run the production server   |
-| `pnpm lint`  | Check the source with ESLint|
-
-### Shared (`pnpm --filter @learnify/shared <cmd>`)
-
-| Command      | Description              |
-| ------------ | ------------------------ |
-| `pnpm dev`   | Watch-build with tsup    |
-| `pnpm build` | Build to `dist/`         |
-
-## API Overview
-
-Base URL: `http://localhost:5000/api/v1`
-
-Protected endpoints require:
-
-```http
-Authorization: Bearer <jwt-token>
-```
-
-### Health
-
-| Method | Endpoint  | Auth   |
-| ------ | --------- | ------ |
-| `GET`  | `/health` | Public |
-
-### Authentication
-
-| Method   | Endpoint                      | Auth                   | Purpose                          |
-| -------- | ----------------------------- | ---------------------- | -------------------------------- |
-| `POST`   | `/auth/signup`                | Public                 | Register a student or instructor |
-| `POST`   | `/auth/login`                 | Public                 | Login and receive a JWT          |
-| `POST`   | `/auth/forgot-password`       | Public                 | Request a password reset email   |
-| `POST`   | `/auth/reset-password/:token` | Public                 | Set a new password               |
-| `GET`    | `/auth/me`                    | Any authenticated user | Get the current user             |
-| `PATCH`  | `/auth/update-me`             | Any authenticated user | Update name or email             |
-| `PATCH`  | `/auth/change-password`       | Any authenticated user | Change password                  |
-| `DELETE` | `/auth/delete-me`             | Any authenticated user | Deactivate the account           |
-
-Example signup and login:
-
-```bash
-curl -X POST http://localhost:5000/api/v1/auth/signup \
-	-H 'Content-Type: application/json' \
-	-d '{"name":"Jane Student","email":"jane@example.com","password":"Password123","role":"student"}'
-
-curl -X POST http://localhost:5000/api/v1/auth/login \
-	-H 'Content-Type: application/json' \
-	-d '{"email":"jane@example.com","password":"Password123"}'
-```
-
-Signup accepts `student` or `instructor`. Admin users should be created through the seed command or directly by an administrator; clients cannot register as admin.
-
-### Courses
-
-| Method   | Endpoint                 | Auth                  |
-| -------- | ------------------------ | --------------------- |
-| `GET`    | `/courses`               | Public, optional JWT  |
-| `GET`    | `/courses/:id`           | Public, optional JWT  |
-| `POST`   | `/courses`               | Instructor or admin   |
-| `PATCH`  | `/courses/:id`           | Course owner or admin |
-| `DELETE` | `/courses`               | Instructor or admin   |
-| `PATCH`  | `/courses/:id/publish`   | Course instructor     |
-| `PATCH`  | `/courses/:id/unpublish` | Course instructor     |
-| `PATCH`  | `/courses/:id/suspend`   | Admin                 |
-| `PATCH`  | `/courses/:id/activate`  | Admin                 |
-
-Create a course with `title`, `price`, `subject`, and `level`. Subjects must be one of `COURSE_SUBJECTS` and levels are `beginner`, `intermediate`, and `advanced`.
-
-```bash
-curl -X POST http://localhost:5000/api/v1/courses \
-	-H 'Content-Type: application/json' \
-	-H 'Authorization: Bearer <instructor-token>' \
-	-d '{"title":"TypeScript Fundamentals","description":"Learn TypeScript from scratch","price":49.99,"subject":"Programming","level":"beginner"}'
-```
-
-Course listing supports `page`, `limit`, `subject`, `level`, `sort`, and `search` query parameters. Public users and students see published courses; instructors also see their own drafts, while admins can see all courses.
-
-### Enrollment and Progress
-
-| Method  | Endpoint                         | Auth                       |
-| ------- | -------------------------------- | -------------------------- |
-| `POST`  | `/courses/:courseId/enroll`      | Student                    |
-| `GET`   | `/enrollments/me`                | Student                    |
-| `GET`   | `/courses/:courseId/enrollments` | Course instructor or admin |
-| `PATCH` | `/courses/:courseId/progress`    | Student                    |
-
-Example enrollment and progress update:
-
-```bash
-curl -X POST http://localhost:5000/api/v1/courses/<course-id>/enroll \
-	-H 'Content-Type: application/json' \
-	-H 'Authorization: Bearer <student-token>' \
-	-d '{}'
-
-curl -X PATCH http://localhost:5000/api/v1/courses/<course-id>/progress \
-	-H 'Content-Type: application/json' \
-	-H 'Authorization: Bearer <student-token>' \
-	-d '{"progress":50}'
-```
-
-`GET /enrollments/me` supports `status`, `page`, and `limit`. Enrollment statuses are `active`, `completed`, and `dropped`.
-
-### Admin
-
-All admin endpoints require an authenticated user with the `admin` role.
-
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| `GET` | `/admin/stats` | Get platform statistics and revenue totals |
-| `GET` | `/admin/users` | List and filter users |
-| `PATCH` | `/admin/users/:id/role` | Change a user's role |
-| `PATCH` | `/admin/users/:id/active` | Activate or deactivate a user |
-| `DELETE` | `/admin/users/:id` | Deactivate a user |
-
-Admin user listing supports `page`, `limit`, `role`, `search`, and `isActive` query parameters.
-
-## Response Format
-
-Successful responses generally use:
-
-```json
-{
-  "status": "success",
-  "data": {}
-}
-```
-
-Validation and application errors use an HTTP error status and:
-
-```json
-{
-  "status": "fail",
-  "message": "Readable error message"
-}
-```
-
-In development, server errors may also include a `stack` field.
-
-## Project Structure
-
-```text
-apps/api/src/
-├── config/        Database configuration
-├── controllers/   Request handlers and business logic
-├── middlewares/   Authentication, roles, and errors
-├── models/        Mongoose models
-├── routes/        Express route definitions
-├── seeds/         Admin, course, and index maintenance scripts
-├── types/         TypeScript declarations
-├── utils/         Shared errors, tokens, email, and helpers
-├── app.ts         Express application setup
-└── server.ts      Database connection and HTTP server
-
-apps/web/src/
-├── app/           Next.js routes (main, auth, instructor, admin)
-├── components/    UI kit, forms, and layout
-├── features/      Auth, courses, and landing modules
-├── hooks/         Shared React hooks
-├── lib/           Axios client and utilities
-├── providers/     React Query provider
-├── proxy.ts       Auth and role route guards
-└── types/         Frontend API types
-
-packages/shared/src/
-├── constants/     Roles, statuses, levels, and subjects
-├── schemas/       Zod schemas (auth, course, enrollment, admin)
-├── types/         Shared TypeScript types
-└── index.ts       Package entry point
-```
+The UI deliberately avoids the generated-template look: no gradient headlines, no glow shadows, no rainbow chips. One accent (pine), warm paper neutrals, serif display type, mono labels, dotted leaders and hard offset shadows — a printed-catalog feel carried through every page, including instructor and admin workspaces.
 
 ## License
 
-This project is licensed under the ISC license.
+MIT
