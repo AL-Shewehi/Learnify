@@ -28,6 +28,6 @@ export interface AdminStats {
   };
   revenue: {
     total: number;
-    average: number;
+    averagePrice: number;
   };
 }

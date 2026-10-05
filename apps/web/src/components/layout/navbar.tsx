@@ -39,7 +39,7 @@ const getNavLinks = (role?: string): NavLinkItem[] => {
   const adminLinks: NavLinkItem[] = [
     { href: "/admin", label: "Dashboard" },
     { href: "/admin/users", label: "Users" },
-    { href: "/courses", label: "Courses" },
+    { href: "/admin/courses", label: "Courses" },
   ];
 
   const linksByRole = {
