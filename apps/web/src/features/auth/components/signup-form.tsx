@@ -38,7 +38,7 @@ export function SignupForm() {
   });
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5 w-full">
+    <form onSubmit={onSubmit} className="flex w-full flex-col gap-5">
       <FormField<SignupInput>
         name="name"
         label="Full Name"
@@ -85,7 +85,7 @@ export function SignupForm() {
         </p>
       )}
 
-      <Button type="submit" disabled={signup.isPending}>
+      <Button type="submit" disabled={signup.isPending} className="w-full">
         {signup.isPending ? "Creating account..." : "Create Account"}
       </Button>
 

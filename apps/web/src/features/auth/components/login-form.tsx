@@ -69,7 +69,7 @@ export function LoginForm() {
       <Button
         type="submit"
         disabled={login.isPending}
-        className="h-12 rounded-xl text-base shadow-lg shadow-primary/20"
+        className="h-12 w-full rounded-xl text-base shadow-lg shadow-primary/20"
       >
         {login.isPending ? "Logging in..." : "Continue"}
       </Button>

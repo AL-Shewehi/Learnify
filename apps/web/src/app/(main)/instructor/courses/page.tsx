@@ -49,7 +49,7 @@ export default function MyCoursesPage() {
   return (
     <>
       {/* Header */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
             Instructor workspace
@@ -60,7 +60,7 @@ export default function MyCoursesPage() {
           </p>
         </div>
 
-        <Button onClick={() => router.push("/instructor/courses/new")}>
+        <Button className="w-full sm:w-auto" onClick={() => router.push("/instructor/courses/new")}>
           <Plus className="mr-2 h-4 w-4" />
           New course
         </Button>

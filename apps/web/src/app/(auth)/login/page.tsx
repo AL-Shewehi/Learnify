@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function LoginPage() {
   return (
-    <section className="mx-auto w-full max-w-2xl py-16 sm:py-20">
+    <section className="mx-auto w-full max-w-xl px-4 py-10 sm:px-6 sm:py-20">
       <div className="mx-auto w-full">
         <AuthIntro
           eyebrow="Welcome back"

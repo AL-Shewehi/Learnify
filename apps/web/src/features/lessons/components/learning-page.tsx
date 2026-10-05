@@ -51,7 +51,7 @@ export function LearningPage({ courseId }: { courseId: string }) {
 
   if (isLoading || isEnrollmentsLoading) {
     return (
-      <div className="container mx-auto grid gap-8 px-4 py-10 lg:grid-cols-[1fr_320px]">
+      <div className="grid gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Skeleton className="aspect-video w-full" />
         <Skeleton className="h-96 w-full" />
       </div>
@@ -60,7 +60,7 @@ export function LearningPage({ courseId }: { courseId: string }) {
 
   if (!enrollment) {
     return (
-      <div className="container mx-auto px-4 py-20 text-center">
+      <div className="py-20 text-center">
         <p className="font-display text-2xl">You&apos;re not enrolled here</p>
         <Button asChild className="mt-6">
           <Link href={`/courses/${courseId}`}>View course page</Link>
@@ -92,7 +92,7 @@ export function LearningPage({ courseId }: { courseId: string }) {
         </div>
       </div>
 
-      <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
+      <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
         {/* ═══ Player ═══ */}
         <div>
           {current ? (
@@ -116,7 +116,7 @@ export function LearningPage({ courseId }: { courseId: string }) {
                   />
                 )
               ) : current.type === "article" ? (
-                <article className="whitespace-pre-line rounded-md border border-border bg-card p-6 leading-7">
+                <article className="whitespace-pre-line break-words rounded-md border border-border bg-card p-4 leading-7 sm:p-6">
                   {current.articleBody}
                 </article>
               ) : (
@@ -125,9 +125,9 @@ export function LearningPage({ courseId }: { courseId: string }) {
                 </div>
               )}
 
-              <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 className="font-display text-2xl">{current.title}</h2>
+              <div className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <h2 className="break-words font-display text-2xl">{current.title}</h2>
                   {current.description && (
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                       {current.description}
@@ -135,14 +135,15 @@ export function LearningPage({ courseId }: { courseId: string }) {
                   )}
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center">
                   {isDone ? (
                     <span className="flex items-center gap-1.5 text-sm font-medium text-primary">
                       <CheckCircle2 className="h-4 w-4" />
                       Completed
                     </span>
                   ) : (
-                    <Button
+                      <Button
+                        className="w-full sm:w-auto"
                       onClick={completeAndContinue}
                       disabled={markComplete.isPending}
                     >
@@ -152,8 +153,9 @@ export function LearningPage({ courseId }: { courseId: string }) {
                   )}
 
                   {isDone && next && (
-                    <Button
+                      <Button
                       variant="outline"
+                        className="w-full sm:w-auto"
                       onClick={() => selectLesson(next._id)}
                     >
                       Next lesson →
@@ -184,7 +186,7 @@ export function LearningPage({ courseId }: { courseId: string }) {
                   <button
                     onClick={() => selectLesson(lesson._id)}
                     className={cn(
-                      "flex w-full items-center gap-3 py-3 text-left text-sm transition-colors",
+                      "flex w-full min-w-0 items-center gap-3 py-3 text-left text-sm transition-colors",
                       active ? "text-primary" : "hover:text-primary",
                     )}
                   >
@@ -200,7 +202,7 @@ export function LearningPage({ courseId }: { courseId: string }) {
                     )}
                     <span
                       className={cn(
-                        "min-w-0 flex-1 truncate",
+                        "min-w-0 flex-1 break-words",
                         active && "font-semibold",
                       )}
                     >

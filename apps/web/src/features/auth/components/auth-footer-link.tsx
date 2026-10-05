@@ -8,7 +8,7 @@ interface AuthFooterLinkProps {
 
 export function AuthFooterLink({ question, href, label }: AuthFooterLinkProps) {
   return (
-    <div className="mt-9 border-t border-border pt-6 text-center text-sm text-muted-foreground">
+    <div className="mt-9 border-t border-border pt-6 text-center text-sm leading-6 text-muted-foreground">
       {question}{" "}
       <Link
         href={href}

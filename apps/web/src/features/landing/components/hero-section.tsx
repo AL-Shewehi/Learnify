@@ -33,8 +33,8 @@ export function HeroSection() {
               they actually build on each other.
             </p>
 
-            <div className="mt-11 flex items-center gap-7">
-              <Button size="lg" asChild>
+            <div className="mt-11 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-7">
+              <Button size="lg" className="w-full sm:w-auto" asChild>
                 <Link href="/courses">
                   Browse the catalog
                   <ArrowRight className="ml-2 h-4 w-4" />

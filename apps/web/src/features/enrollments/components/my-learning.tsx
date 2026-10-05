@@ -53,7 +53,7 @@ export function MyLearning() {
                 <li key={enrollment._id}>
                   <Link
                     href={`/my-learning/${course._id}`}
-                    className="flex gap-4 rounded-md border border-border bg-card p-4 transition-colors hover:border-primary/50"
+                    className="flex min-w-0 gap-3 rounded-md border border-border bg-card p-3 transition-colors hover:border-primary/50 sm:gap-4 sm:p-4"
                   >
                     <span className="h-20 w-32 shrink-0 overflow-hidden rounded relative">
                       <CourseCover course={course} />
@@ -61,7 +61,7 @@ export function MyLearning() {
 
                     <span className="flex min-w-0 flex-1 flex-col justify-between py-1">
                       <span>
-                        <span className="block truncate font-display text-lg font-semibold">
+                        <span className="block break-words font-display text-lg font-semibold">
                           {course.title}
                         </span>
                         <span className="text-xs text-muted-foreground">
@@ -70,12 +70,12 @@ export function MyLearning() {
                         </span>
                       </span>
 
-                      <span className="flex items-center gap-3">
+                      <span className="flex min-w-0 items-center gap-2 sm:gap-3">
                         <ProgressBar
                           value={enrollment.progress}
                           className="flex-1"
                         />
-                        <span className="w-10 text-right font-mono text-xs text-muted-foreground">
+                        <span className="w-9 shrink-0 text-right font-mono text-xs text-muted-foreground sm:w-10">
                           {enrollment.progress}%
                         </span>
                       </span>

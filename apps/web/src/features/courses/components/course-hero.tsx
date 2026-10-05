@@ -26,7 +26,7 @@ export function CourseHero({ course }: { course: CourseResponse }) {
 
   return (
     <section className="border-b border-border">
-      <div className="px-4 pb-10 sm:pb-14">
+      <div className="pb-10 sm:pb-14">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
           {/* Cover */}
           <div className="overflow-hidden rounded-md border border-border shadow-[6px_6px_0_0_var(--color-border)]">

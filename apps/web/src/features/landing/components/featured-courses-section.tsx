@@ -10,7 +10,7 @@ export function FeaturedCoursesSection() {
     <section className="border-b border-border">
       <div>
         {/* Header بالـ editorial style */}
-        <div className="mb-10 flex items-end justify-between border-b border-border pb-4">
+        <div className="mb-10 flex flex-col gap-4 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               01 — New this week

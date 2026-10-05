@@ -15,6 +15,7 @@ import lessonRoutes from "./routes/lessonRoutes.js";
 
 
 const app: Express = express();
+app.set("trust proxy", true);
 
 // ============ Middlewares ============
 

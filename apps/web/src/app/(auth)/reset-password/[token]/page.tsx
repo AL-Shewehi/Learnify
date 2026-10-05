@@ -15,7 +15,7 @@ export default async function ResetPasswordPage({
   const { token } = await params;
 
   return (
-    <section className="mx-auto w-full max-w-2xl px-6 py-16 sm:px-14 sm:py-20 lg:px-16 xl:px-24">
+    <section className="mx-auto w-full max-w-xl px-4 py-10 sm:px-6 sm:py-20">
       <div className="mx-auto w-full">
         <AuthIntro
           eyebrow="Create a new password"
