@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Express, Request, Response } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import helmet from "helmet";
@@ -14,7 +14,7 @@ import lessonRoutes from "./routes/lessonRoutes.js";
 
 
 
-const app = express();
+const app: Express = express();
 
 // ============ Middlewares ============
 

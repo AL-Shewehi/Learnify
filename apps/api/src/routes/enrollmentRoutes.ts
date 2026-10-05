@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 import {
   createEnrollment,
   getMyEnrollments,
@@ -7,7 +7,7 @@ import {
 } from "../controllers/enrollmentController.js";
 import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.use(protect);
 

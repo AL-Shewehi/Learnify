@@ -1,6 +1,6 @@
 // src/routes/authRoutes.ts
 
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 import {
   signup,
   login,
@@ -14,7 +14,7 @@ import {
 } from "../controllers/authController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // Public
 router.post("/signup", signup);

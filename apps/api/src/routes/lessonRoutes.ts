@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 import {
   deleteLesson,
   getLesson,
@@ -11,7 +11,7 @@ import {
   restrictTo,
 } from "../middlewares/authMiddleware.js";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // Public / enrolled
 router.get("/lessons/:id", optionalAuth, getLesson);

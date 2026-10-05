@@ -1,7 +1,6 @@
 // src/utils/generateToken.ts
 
 import jwt from "jsonwebtoken";
-import type { StringValue } from "ms";
 
 /**
  * Generates a JWT token for the given user ID.
@@ -17,7 +16,7 @@ const generateToken = (userId: string, role: string): string => {
     throw new Error("JWT_SECRET is not defined in environment variables");
   }
 
-  const expiresIn: StringValue = (process.env.JWT_EXPIRES_IN || "7d") as StringValue;
+  const expiresIn = (process.env.JWT_EXPIRES_IN || "7d") as jwt.SignOptions["expiresIn"];
 
   return jwt.sign({ id: userId, role }, secret, {
     expiresIn,

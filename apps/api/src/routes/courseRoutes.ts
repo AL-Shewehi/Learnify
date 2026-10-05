@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 import {
   createCourse,
   getCourses,
@@ -22,7 +22,7 @@ import {
 } from "../controllers/lessonController.js";
 import { checkout } from "../controllers/checkoutController.js";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.get("/", optionalAuth, getCourses);
 router.get("/:id", optionalAuth, getCourse);
