@@ -7,7 +7,7 @@ import type {
 
 export interface CoursesPage {
   courses: CourseResponse[];
-  pagination: { total: number; page: number; limit: number; pages: number };
+  pagination: { total: number; page: number; limit: number; totalPages: number };
 }
 export const coursesApi = {
   list: (params?: Partial<GetCoursesQuery>): Promise<CoursesPage> =>

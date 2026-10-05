@@ -182,7 +182,7 @@ export const getCourses = async (
     pagination: {
       total,
       page: query.page,
-      pages: Math.ceil(total / query.limit),
+      totalPages: Math.ceil(total / query.limit),
       limit: query.limit,
     },
     data: { courses },

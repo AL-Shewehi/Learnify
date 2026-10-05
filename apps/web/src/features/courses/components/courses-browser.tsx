@@ -17,7 +17,7 @@ export function CoursesBrowser() {
     const to = pagination ? Math.min(pagination.page * pagination.limit, pagination.total) : 0;
 
      return (
-    <div className="container mx-auto px-4 py-10 sm:py-14">
+    <>
       {/* Header */}
       <div className="flex items-end justify-between">
         <div>
@@ -79,10 +79,10 @@ export function CoursesBrowser() {
       {pagination && (
         <Pagination
           page={pagination.page}
-          totalPages={pagination.pages}
+          totalPages={pagination.totalPages}
           onChange={(page) => setFilters({ page })}
         />
       )}
-    </div>
+    </>
   );
 }

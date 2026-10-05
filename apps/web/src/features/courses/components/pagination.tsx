@@ -31,7 +31,7 @@ export function Pagination({ page, totalPages, onChange }: PaginationProps) {
           <span key={`e${i}`} className="px-2 text-muted-foreground">…</span>
         ) : (
           <button
-            key={p}
+            key={`page-${p}-${i}`}
             onClick={() => onChange(p)}
             className={
               p === page

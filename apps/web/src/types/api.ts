@@ -9,7 +9,7 @@ export interface PaginatedResponse<T> {
   pagination: {
     total: number;
     page: number;
-    pages: number;
+    totalPages: number;
     limit: number;
   };
   data: {
