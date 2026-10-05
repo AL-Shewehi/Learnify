@@ -38,7 +38,7 @@ export function SignupForm() {
   });
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5 w-full max-w-md">
+    <form onSubmit={onSubmit} className="flex flex-col gap-5 w-full">
       <FormField<SignupInput>
         name="name"
         label="Full Name"
