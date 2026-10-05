@@ -73,7 +73,7 @@ export function LearningPage({ courseId }: { courseId: string }) {
     current?.type === "video" ? getEmbedInfo(current.videoUrl) : null;
 
   return (
-    <div className="container mx-auto px-4 py-8 sm:py-10">
+    <>
       {/* Progress header */}
       <div className="mb-8 flex flex-col gap-3 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
@@ -216,6 +216,6 @@ export function LearningPage({ courseId }: { courseId: string }) {
           </ol>
         </aside>
       </div>
-    </div>
+    </>
   );
 }

@@ -13,8 +13,8 @@ export function HeroSection() {
 
   return (
     <section className="border-b border-border">
-      <div className="container mx-auto px-4">
-        <div className="grid gap-12 py-16 sm:py-24 lg:grid-cols-[1.15fr_0.85fr] lg:gap-20">
+      <div >
+        <div className="grid gap-12 pb-16 sm:pb-24 lg:grid-cols-[1.15fr_0.85fr] lg:gap-20">
           {/* ═══ اليسار: الكلام ═══ */}
           <div className="flex flex-col justify-center">
             <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">

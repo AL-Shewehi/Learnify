@@ -47,7 +47,7 @@ export function LessonsManager({ courseId }: Props) {
   };
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-10 sm:py-14">
+    <div className=" mx-auto max-w-4xl">
       {/* Header */}
       <div className="flex items-end justify-between gap-4">
         <div>

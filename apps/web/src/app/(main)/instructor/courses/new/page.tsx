@@ -27,7 +27,7 @@ export default function NewCoursePage() {
   };
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-10 sm:py-14">
+    <div className=" mx-auto max-w-2xl">
       <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
         Instructor workspace · new course
       </p>

@@ -42,8 +42,8 @@ export function CourseEditor({ courseId }: { courseId: string }) {
       router.push("/instructor/courses");
     } catch (err) {
       toast.error(
-        (err as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message ?? "Couldn't update the course",
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? "Couldn't update the course",
       );
     } finally {
       setIsPending(false);
@@ -51,7 +51,7 @@ export function CourseEditor({ courseId }: { courseId: string }) {
   };
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-10 sm:py-14">
+    <div className="container mx-auto max-w-2xl">
       <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
         Instructor workspace · edit course
       </p>

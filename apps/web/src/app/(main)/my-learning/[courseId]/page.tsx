@@ -10,7 +10,7 @@ interface Props {
 export default async function LearningRoute({ params }: Props) {
   const { courseId } = await params;
   return (
-    <Suspense fallback={<div className="container mx-auto px-4 py-20" />}>
+    <Suspense fallback={<div className="py-6" />}>
       <LearningPage courseId={courseId} />
     </Suspense>
   );

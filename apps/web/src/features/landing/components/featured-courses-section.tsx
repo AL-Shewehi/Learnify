@@ -8,7 +8,7 @@ export function FeaturedCoursesSection() {
 
   return (
     <section className="border-b border-border">
-      <div className="container mx-auto px-4 py-16 sm:py-20">
+      <div>
         {/* Header بالـ editorial style */}
         <div className="mb-10 flex items-end justify-between border-b border-border pb-4">
           <div>
