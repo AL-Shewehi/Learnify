@@ -9,7 +9,6 @@ import {
   updateProgressSchema,
 } from "@learnify/shared";
 
-
 // ============ Types ============
 
 interface CreateEnrollmentInput {
@@ -19,7 +18,7 @@ interface CreateEnrollmentInput {
 // ============ Parser ============
 
 const parseCreateEnrollmentBody = (raw: unknown): CreateEnrollmentInput => {
-  const parsed = createEnrollmentSchema.safeParse(raw);
+  const parsed = createEnrollmentSchema.safeParse(raw ?? {});
 
   if (!parsed.success) {
     throw new ApiError(parsed.error.issues[0].message, 400);

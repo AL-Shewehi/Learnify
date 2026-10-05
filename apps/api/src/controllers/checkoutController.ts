@@ -56,7 +56,7 @@ export const checkout = async (req: Request, res: Response) => {
   course.totalStudents += 1;
   await course.save();
 
-  res.status(200).json({
+  res.status(201).json({
     status: "success",
     data: {
       enrollment,
