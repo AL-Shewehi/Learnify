@@ -10,6 +10,7 @@ const PROTECTED = [
   "/admin",
   "/profile",
   "/settings",
+  "/checkout",
 ];
 
 const ROLE_GUARDS: { prefix: string; roles: readonly string[] }[] = [

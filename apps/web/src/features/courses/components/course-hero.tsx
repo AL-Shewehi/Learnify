@@ -26,7 +26,7 @@ export function CourseHero({ course }: { course: CourseResponse }) {
 
   return (
     <section className="border-b border-border">
-      <div className="container mx-auto px-4 py-10 sm:py-14">
+      <div className="px-4 pb-10 sm:pb-14">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
           {/* Cover */}
           <div className="overflow-hidden rounded-md border border-border shadow-[6px_6px_0_0_var(--color-border)]">
@@ -111,19 +111,26 @@ export function CourseHero({ course }: { course: CourseResponse }) {
                 ) : isEnrolled ? (
                   <Button size="lg" asChild>
                     <Link href={`/my-learning/${course._id}`}>
-                      Continue learning <ArrowRight size={16} className="ml-1" />
+                      Continue learning{" "}
+                      <ArrowRight size={16} className="ml-1" />
                     </Link>
                   </Button>
                 ) : session.role === "student" ? (
-                  <Button
-                    size="lg"
-                    onClick={() => enroll.mutate()}
-                    disabled={enroll.isPending}
-                  >
-                    {enroll.isPending
-                      ? "Enrolling…"
-                      : `Enroll in this course · ${formatPrice(course.price)}`}
-                  </Button>
+                  course.price > 0 ? (
+                    <Button size="lg" asChild>
+                      <Link href={`/checkout/${course._id}`}>
+                        Continue to checkout · {formatPrice(course.price)}
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      size="lg"
+                      onClick={() => enroll.mutate()}
+                      disabled={enroll.isPending}
+                    >
+                      {enroll.isPending ? "Enrolling…" : "Enroll — Free"}
+                    </Button>
+                  )
                 ) : (
                   <p className="text-sm text-muted-foreground">
                     Instructor accounts can&Apos;t enroll as students.

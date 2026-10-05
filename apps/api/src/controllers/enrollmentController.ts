@@ -3,14 +3,18 @@ import Enrollment from "../models/Enrollment.js";
 import Course from "../models/Course.js";
 import ApiError from "../utils/ApiError.js";
 import { getRouteParam } from "../utils/getRouteParam.js";
-import { createEnrollmentSchema, getMyEnrollmentsQuerySchema, updateProgressSchema } from "@learnify/shared";
+import {
+  createEnrollmentSchema,
+  getMyEnrollmentsQuerySchema,
+  updateProgressSchema,
+} from "@learnify/shared";
+
 
 // ============ Types ============
 
 interface CreateEnrollmentInput {
   couponCode?: string;
 }
-
 
 // ============ Parser ============
 
@@ -84,6 +88,10 @@ export const createEnrollment = async (
     throw new ApiError("You are already enrolled in this course", 409);
   }
 
+  if (course.price > 0) {
+    throw new ApiError("Paid courses require checkout", 402);
+  }
+
   // Create enrollment with SERVER-CONTROLLED fields
   const enrollment = await Enrollment.create({
     student: req.user._id,
@@ -150,7 +158,7 @@ export const getMyEnrollments = async (
     pagination: {
       total,
       page: input.page,
-      pages: Math.ceil(total / input.limit),
+      totalPages: Math.ceil(total / input.limit),
       limit: input.limit,
     },
     data: { enrollments },
