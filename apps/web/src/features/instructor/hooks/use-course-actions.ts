@@ -33,6 +33,14 @@ export const useCourseActions = () => {
         mutationFn: instructorApi.unpublish,
         onSuccess,
         onError
+    }),
+    remove: useMutation({
+        mutationFn: instructorApi.remove,
+        onSuccess: (course) => {
+            queryClient.invalidateQueries({ queryKey: ["my-courses"] });
+            toast.success(`"${course.title}" deleted`);
+        },
+        onError
     })
   }
 };

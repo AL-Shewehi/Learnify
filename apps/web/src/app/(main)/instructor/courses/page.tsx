@@ -10,6 +10,7 @@ import {
   Eye,
   Archive,
   Pencil,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +18,7 @@ import { useMyCourses } from "@/features/instructor";
 import { Badge } from "@/components/ui/badge";
 import type { CourseStatus } from "@learnify/shared";
 import { useCourseActions } from "@/features/instructor";
+import { useState } from "react";
 
 const STATUS_BADGE: Record<CourseStatus, { label: string; className: string }> =
   {
@@ -32,15 +34,20 @@ const STATUS_BADGE: Record<CourseStatus, { label: string; className: string }> =
       label: "Archived",
       className: "bg-rose-100 text-rose-800 border-rose-200",
     },
+    suspended: {
+      label: "Suspended",
+      className: "bg-rose-100 text-rose-800 border-rose-200",
+    },
   };
 
 export default function MyCoursesPage() {
   const router = useRouter();
   const { data: courses, isLoading } = useMyCourses();
-  const { publish, unpublish } = useCourseActions();
+  const { publish, unpublish, remove } = useCourseActions();
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-10 sm:py-14">
+    <>
       {/* Header */}
       <div className="flex items-end justify-between">
         <div>
@@ -188,6 +195,35 @@ export default function MyCoursesPage() {
                           Manage lessons
                         </Link>
                       </Button>
+                      {confirmDelete === course._id ? (
+                        <span className="flex items-center gap-2">
+                          <button
+                            onClick={() =>
+                              remove.mutate(course._id, {
+                                onSuccess: () => setConfirmDelete(null),
+                              })
+                            }
+                            className="text-xs font-semibold text-destructive underline underline-offset-4"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => setConfirmDelete(null)}
+                            className="text-xs text-muted-foreground"
+                          >
+                            Keep
+                          </button>
+                        </span>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          aria-label="Delete course"
+                          onClick={() => setConfirmDelete(course._id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </li>
@@ -196,6 +232,6 @@ export default function MyCoursesPage() {
           </ol>
         )}
       </div>
-    </div>
+    </>
   );
 }

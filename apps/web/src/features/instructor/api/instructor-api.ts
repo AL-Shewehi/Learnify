@@ -45,18 +45,17 @@ export const instructorApi = {
       .then((r) => r.data.data.course),
 
   students: (courseId: string): Promise<CourseStudentsResponse> =>
-  api
-    .get<{
-      status: "success";
-      results: number;
-      stats: CourseStudentsResponse["stats"];
-      data: { enrollments: CourseStudentsResponse["enrollments"] };
-    }>(
-      `/courses/${courseId}/enrollments`,
-    )
-    .then((r) => ({
-      enrollments: r.data.data.enrollments,
-      stats: r.data.stats,
-      result: r.data.results,
-    })),
+    api
+      .get<{
+        status: "success";
+        results: number;
+        stats: CourseStudentsResponse["stats"];
+        data: { enrollments: CourseStudentsResponse["enrollments"] };
+      }>(`/courses/${courseId}/enrollments`)
+      .then((r) => ({
+        enrollments: r.data.data.enrollments,
+        stats: r.data.stats,
+        result: r.data.results,
+      })),
+  remove: (id: string) => api.delete(`/courses/${id}`).then((r) => r.data),
 };
