@@ -1,16 +1,26 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui"
-import { useCourse } from "../hooks/use-course"
-import { CourseHero } from "./course-hero"
-import { CourseTabs } from "./course-tabs"
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui";
+import { useCourse } from "../hooks/use-course";
+import { CourseHero } from "./course-hero";
+import { CourseTabs } from "./course-tabs";
+import { useCourseLessons } from "@/features/lessons";
+import type { LessonResponse } from "@learnify/shared";
+import { toast } from "sonner";
 
-export function CourseDetailsPage({courseId}: {courseId: string}) {
-    const router = useRouter()
-    const {data: course, isLoading, isError, error} = useCourse(courseId)
+export function CourseDetailsPage({ courseId }: { courseId: string }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedLessonId = searchParams.get("lesson");
 
-    if (isLoading) {
+  const { data: course, isLoading, isError, error } = useCourse(courseId);
+  const { data: lessonsData } = useCourseLessons(courseId);
+
+  const lessons = lessonsData?.lessons ?? [];
+  const selected = lessons.find((l) => l._id === selectedLessonId);
+
+  if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-20">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
@@ -55,10 +65,25 @@ export function CourseDetailsPage({courseId}: {courseId: string}) {
     );
   }
 
+  const previewLesson =
+    selected && !selected.locked && !course.isEnrolled ? selected : undefined;
+
+  const handleSelect = (lesson: LessonResponse) => {
+    if (course.isEnrolled) {
+      router.push(`/my-learning/${courseId}?lesson=${lesson._id}`);
+      return;
+    }
+    if (lesson.locked) {
+      toast.info("This lesson unlocks with enrollment");
+      return;
+    }
+    router.push(`/courses/${courseId}?lesson=${lesson._id}`);
+  };
+
   return (
     <>
-      <CourseHero course={course} />
-      <CourseTabs course={course} />
+      <CourseHero course={course} previewLesson={previewLesson} />
+      <CourseTabs course={course} onSelect={handleSelect} />
     </>
   );
 }

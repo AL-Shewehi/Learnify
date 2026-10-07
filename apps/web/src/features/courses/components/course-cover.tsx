@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import type { CourseResponse } from "@learnify/shared";
 
@@ -18,16 +19,21 @@ export function paletteFor(seed: string) {
 export function CourseCover({
   course,
   className,
+  priority = false,
 }: {
   course: CourseResponse;
   className?: string;
+  priority?: boolean;
 }) {
   if (course.coverImage) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <Image
       src={course.coverImage}
       alt={course.title}
+      fill
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      priority={priority}
+      loading={priority ? undefined : "lazy"}
       className={cn(
         "absolute inset-0 h-full w-full object-cover",
         className,

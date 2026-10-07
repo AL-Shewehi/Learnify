@@ -17,8 +17,10 @@ export function Pagination({ page, totalPages, onChange }: PaginationProps) {
     if (totalPages <= 1) return null;
 
     return (
-    <nav className="mt-12 flex items-center justify-center gap-1 font-mono text-sm">
+    <nav aria-label="Pagination" className="mt-12 flex items-center justify-center gap-1 font-mono text-sm">
       <button
+        type="button"
+        aria-label="Previous page"
         disabled={page === 1}
         onClick={() => onChange(page - 1)}
         className="px-3 py-2 text-muted-foreground transition-colors hover:text-primary disabled:opacity-40"
@@ -32,6 +34,9 @@ export function Pagination({ page, totalPages, onChange }: PaginationProps) {
         ) : (
           <button
             key={`page-${p}-${i}`}
+            type="button"
+            aria-label={`Page ${p}`}
+            aria-current={p === page ? "page" : undefined}
             onClick={() => onChange(p)}
             className={
               p === page
@@ -45,6 +50,8 @@ export function Pagination({ page, totalPages, onChange }: PaginationProps) {
       )}
 
       <button
+        type="button"
+        aria-label="Next page"
         disabled={page === totalPages}
         onClick={() => onChange(page + 1)}
         className="px-3 py-2 text-muted-foreground transition-colors hover:text-primary disabled:opacity-40"

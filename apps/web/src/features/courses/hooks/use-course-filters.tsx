@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
-import { COURSE_LEVELS, type GetCoursesQuery } from "@learnify/shared";
+import { COURSE_LEVELS, COURSE_SUBJECTS, COURSE_SORT_OPTIONS, type GetCoursesQuery } from "@learnify/shared";
 
 const DEFAULTS: GetCoursesQuery = { page: 1, limit: 9, sort: "-createdAt" };
 
@@ -28,8 +28,14 @@ function parseFilters(searchParamsString: string): GetCoursesQuery {
       rawLevel && (COURSE_LEVELS as readonly string[]).includes(rawLevel)
         ? (rawLevel as GetCoursesQuery["level"])
         : undefined,
-    subject: rawSubject || undefined,
-    sort: rawSort || DEFAULTS.sort,
+    subject:
+      rawSubject && (COURSE_SUBJECTS as readonly string[]).includes(rawSubject)
+        ? (rawSubject as GetCoursesQuery["subject"])
+        : undefined,
+    sort:
+      rawSort && (COURSE_SORT_OPTIONS as readonly string[]).includes(rawSort)
+        ? (rawSort as GetCoursesQuery["sort"])
+        : DEFAULTS.sort,
     search: rawSearch || undefined,
   };
 }
@@ -39,8 +45,6 @@ export function useCourseFilters() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Stringify: useSearchParams() returns a new object identity on every
-  // render, so depend on the string to keep `filters`/`setFilters` stable.
   const searchParamsString = searchParams.toString();
 
   const filters = useMemo<GetCoursesQuery>(
@@ -62,12 +66,10 @@ export function useCourseFilters() {
         params.set(key, String(value));
       }
       const nextQueryString = params.toString();
-      // Skip navigation if URL wouldn't change — otherwise router.push
-      // to the same URL re-triggers render -> new filters identity ->
-      // effect re-run -> infinite GET loop.
       if (nextQueryString === searchParamsString) return;
-      router.push(
+      router.replace(
         nextQueryString ? `${pathname}?${nextQueryString}` : pathname,
+        { scroll: false },
       );
     },
     [searchParamsString, pathname, router],

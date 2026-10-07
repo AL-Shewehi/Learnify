@@ -1,28 +1,31 @@
+"use client";
+
 import Link from "next/link";
-import { Star, Users, Calendar, ArrowRight } from "lucide-react";
+import { Star, Users, Calendar, ArrowRight, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui";
 import { CourseCover } from "./course-cover";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useEnroll } from "@/features/enrollments";
-import type { CourseResponse } from "@learnify/shared";
+import type { CourseResponse, LessonResponse } from "@learnify/shared";
+import { LessonMedia } from "@/features/lessons";
+import { formatDate, formatPrice } from "@/lib/format";
 
-export function CourseHero({ course }: { course: CourseResponse }) {
+export function CourseHero({
+  course,
+  previewLesson,
+}: {
+  course: CourseResponse;
+  previewLesson?: LessonResponse;
+}) {
   const { session, isLoading: authLoading } = useAuth();
   const enroll = useEnroll(course._id);
 
   const isOwner = session?._id === course.instructor._id;
 
   const isEnrolled =
-    session?.role === "student" &&
-    (course as CourseResponse & { isEnrolled?: boolean }).isEnrolled === true;
+    session?.role === "student" && course.isEnrolled === true;
 
-  const formatPrice = (p: number) =>
-    p === 0 ? "Free" : `$${p.toLocaleString()}`;
-
-  const publishedAt = new Date(course.createdAt).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-  });
+  const publishedAt = formatDate(course.createdAt);
 
   return (
     <section className="border-b border-border">
@@ -30,9 +33,21 @@ export function CourseHero({ course }: { course: CourseResponse }) {
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
           {/* Cover */}
           <div className="overflow-hidden rounded-md border border-border shadow-[6px_6px_0_0_var(--color-border)]">
-            <div className="relative aspect-16/10">
-              <CourseCover course={course} />
-            </div>
+            {previewLesson ? (
+              <div>
+                <LessonMedia lesson={previewLesson} bare />
+                <p className="flex items-center gap-2 border-t border-border bg-card px-4 py-3 font-mono text-[11px] uppercase tracking-[0.22em] text-primary">
+                  <PlayCircle className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">
+                    Free preview · {previewLesson.title}
+                  </span>
+                </p>
+              </div>
+            ) : (
+              <div className="aspect-16/10 relative">
+                <CourseCover course={course} priority />
+              </div>
+            )}
           </div>
 
           {/* Info */}
@@ -133,7 +148,7 @@ export function CourseHero({ course }: { course: CourseResponse }) {
                   )
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Instructor accounts can&Apos;t enroll as students.
+                    Instructor accounts can&apos;t enroll as students.
                   </p>
                 )}
 

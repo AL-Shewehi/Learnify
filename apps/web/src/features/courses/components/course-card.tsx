@@ -1,11 +1,13 @@
 import Link from "next/link";
+import { memo } from "react";
 import { Star, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import type { CourseResponse } from "@learnify/shared";
 import { CourseCover } from "./course-cover";
+import { formatPrice } from "@/lib/format";
 
-export function CourseCard({ course }: { course: CourseResponse }) {
+export const CourseCard = memo(function CourseCard({ course }: { course: CourseResponse }) {
   return (
     <Card className="group overflow-hidden transition-colors hover:border-primary/50">
       <div className="relative aspect-4/3 overflow-hidden bg-muted">
@@ -40,7 +42,7 @@ export function CourseCard({ course }: { course: CourseResponse }) {
 
         <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
           <span className="text-lg font-semibold text-foreground">
-            {course.price === 0 ? "Free" : `$${course.price}`}
+            {formatPrice(course.price)}
           </span>
           <span className="text-xs capitalize text-muted-foreground">
             {course.subject ?? "General"}
@@ -49,4 +51,4 @@ export function CourseCard({ course }: { course: CourseResponse }) {
       </div>
     </Card>
   );
-}
+})

@@ -46,6 +46,7 @@ export function CourseFiltersBar({ filters, onChange }: CourseFiltersBarProps) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search the catalog…"
+          aria-label="Search courses"
           className="pl-9"
         />
       </div>
@@ -55,7 +56,12 @@ export function CourseFiltersBar({ filters, onChange }: CourseFiltersBarProps) {
         <Select
           value={filters.subject ?? "__all"}
           onValueChange={(v) =>
-            onChange({ subject: v === "__all" ? undefined : v })
+            onChange({
+              subject:
+                v === "__all"
+                  ? undefined
+                  : (v as NonNullable<GetCoursesQuery["subject"]>),
+            })
           }
         >
           <SelectTrigger className="w-40">
@@ -99,7 +105,9 @@ export function CourseFiltersBar({ filters, onChange }: CourseFiltersBarProps) {
         {/* Sort */}
         <Select
           value={filters.sort}
-          onValueChange={(v) => onChange({ sort: v })}
+          onValueChange={(v) =>
+            onChange({ sort: v as NonNullable<GetCoursesQuery["sort"]> })
+          }
         >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Sort" />

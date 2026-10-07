@@ -1,7 +1,8 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { GetCoursesQuery } from "@learnify/shared";
 import { coursesApi } from "../api/courses-api";
+import { qk } from "@/lib/query-keys";
 
 export function useCourses(params?: Partial<GetCoursesQuery>) {
   const key = {
@@ -14,8 +15,8 @@ export function useCourses(params?: Partial<GetCoursesQuery>) {
   };
 
   return useQuery({
-    queryKey: ["courses", key],
+    queryKey: qk.courses(key),
     queryFn: () => coursesApi.list(params),
-    staleTime: 60_000,
+    placeholderData: keepPreviousData,
   });
 }
