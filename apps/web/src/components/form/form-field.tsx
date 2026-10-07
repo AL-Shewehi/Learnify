@@ -59,6 +59,7 @@ export function FormField<T extends FieldValues>({
 }: FormFieldProps<T>) {
   const error = errors[name] as { message?: string } | undefined;
   const hasError = Boolean(error);
+  const errorId = `${String(name)}-error`;
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
@@ -77,7 +78,12 @@ export function FormField<T extends FieldValues>({
               disabled={field.disabled}
               name={field.name}
             >
-              <SelectTrigger id={name} hasError={hasError}>
+              <SelectTrigger
+                id={name}
+                hasError={hasError}
+                aria-invalid={hasError}
+                aria-describedby={hasError ? errorId : undefined}
+              >
                 <SelectValue placeholder={placeholder ?? "Select an option"} />
               </SelectTrigger>
               <SelectContent>
@@ -95,6 +101,8 @@ export function FormField<T extends FieldValues>({
           id={name}
           placeholder={placeholder}
           rows={6}
+          aria-invalid={hasError}
+          aria-describedby={hasError ? errorId : undefined}
           {...register(name)}
           className={cn(
             "flex w-full rounded-lg border bg-background px-3 py-2 text-sm",
@@ -110,12 +118,16 @@ export function FormField<T extends FieldValues>({
           type={type}
           placeholder={placeholder}
           hasError={hasError}
+          aria-invalid={hasError}
+          aria-describedby={hasError ? errorId : undefined}
           {...register(name, type === "number" ? { valueAsNumber: true } : {})}
         />
       )}
 
       {error?.message && (
-        <p className="text-sm text-destructive">{error.message}</p>
+        <p id={errorId} role="alert" className="text-sm text-destructive">
+          {error.message}
+        </p>
       )}
     </div>
   );

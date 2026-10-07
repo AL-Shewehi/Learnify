@@ -13,11 +13,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { getInitials } from "@/lib/format";
 
 const ROLE_STYLES: Record<string, string> = {
-  student: "bg-blue-100 text-blue-800",
-  instructor: "bg-emerald-100 text-emerald-800",
-  admin: "bg-rose-100 text-rose-800",
+  student: "bg-role-student-bg text-role-student-foreground",
+  instructor: "bg-role-instructor-bg text-role-instructor-foreground",
+  admin: "bg-role-admin-bg text-role-admin-foreground",
 };
 
 export function UserMenu() {
@@ -26,12 +27,7 @@ export function UserMenu() {
 
   if (!user) return null;
 
-  const initials = user.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = getInitials(user.name);
 
   return (
     <DropdownMenu>

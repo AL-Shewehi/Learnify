@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Menu, X, Plus } from "lucide-react";
 import { useAuthStore } from "@/features/auth";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "./logo";
 import { NavLink } from "./nav-link";
 import { UserMenu } from "./user-menu";
+import { ThemeToggle } from "./theme-toggle";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useLogout } from "@/features/auth/hooks/use-logout";
@@ -52,9 +53,11 @@ const getNavLinks = (role?: string): NavLinkItem[] => {
 };
 
 export function Navbar() {
-  const { user, isAuthenticated, isInitialized } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const links = getNavLinks(user?.role);
+  const links = useMemo(() => getNavLinks(user?.role), [user?.role]);
   const router = useRouter();
   const pathname = usePathname();
   const logout = useLogout();
@@ -62,7 +65,7 @@ export function Navbar() {
   const isAuthPage = pathname === "/login" || pathname === "/signup";
 
   return (
-    <nav className="sticky top-0 z-40 border-b-4 border-double border-border bg-background/95 backdrop-blur">
+    <nav className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
       {" "}
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
@@ -88,7 +91,8 @@ export function Navbar() {
           </div>
 
           {/* Right: Auth actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
             {!isInitialized ? (
               <div
                 className="h-9 w-28 animate-pulse rounded-lg bg-muted"
@@ -117,9 +121,11 @@ export function Navbar() {
             <Button
               variant="ghost"
               size="icon"
+              type="button"
               className="rounded-md text-foreground hover:bg-accent md:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </Button>
@@ -128,7 +134,7 @@ export function Navbar() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="border-t border-border py-4 md:hidden">
+          <div className="max-h-[70vh] overflow-y-auto border-t border-border py-4 md:hidden">
             <div className="flex flex-col gap-1">
               {links.map((link) => (
                 <Link
