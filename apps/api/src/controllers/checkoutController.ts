@@ -22,6 +22,9 @@ export const checkout = async (req: Request, res: Response) => {
   }
 
   const [mm, yy] = parsed.data.expirationDate.split("/").map((s) => parseInt(s.trim(), 10));
+  if (Number.isNaN(mm) || Number.isNaN(yy) || mm < 1 || mm > 12) {
+    throw new ApiError("Invalid expiration date format (MM/YY)", 400);
+  }
   const cardExpirationDate = new Date(2000 + yy, mm, 0, 23, 59, 59);
   if (cardExpirationDate < new Date()) {
     throw new ApiError("Card has expired", 400);
@@ -53,8 +56,7 @@ export const checkout = async (req: Request, res: Response) => {
     status: "active"
   });
 
-  course.totalStudents += 1;
-  await course.save();
+  await Course.updateOne({ _id: course._id }, { $inc: { totalStudents: 1 } });
 
   res.status(201).json({
     status: "success",

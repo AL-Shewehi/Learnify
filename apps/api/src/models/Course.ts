@@ -139,14 +139,16 @@ const courseSchema = new Schema<ICourse>(
 
 courseSchema.index({ instructor: 1 });
 courseSchema.index({ status: 1, createdAt: -1 });
+courseSchema.index({ status: 1, subject: 1, level: 1 });
+courseSchema.index({ status: 1, instructor: 1 });
 courseSchema.index({ subject: 1 });
 courseSchema.index({ level: 1 });
 courseSchema.index({ rating: -1 });
 courseSchema.index(
   { title: "text", description: "text" },
   {
-    default_language: "none", // بدون stemming - يشتغل مع أي لغة
-    language_override: "textSearchLanguage", // field تاني مش موجود عندنا
+    default_language: "none",
+    language_override: "textSearchLanguage",
   },
 );
 // ============ Export ============

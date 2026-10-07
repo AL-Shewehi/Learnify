@@ -11,6 +11,5 @@ export interface UserResponse {
 
 export interface AuthResponse {
   status: "success";
-  token: string;
   data: { user: UserResponse };
 }

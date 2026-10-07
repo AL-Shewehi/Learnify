@@ -66,20 +66,58 @@ export const deleteLesson = async (req: Request, res: Response) => {
   await ensureCourseOwner(lesson.course.toString(), req.user);
 
   const title = lesson.title;
+  const courseId = lesson.course;
   await lesson.deleteOne();
 
   await Enrollment.updateMany(
-    { course: lesson.course },
+    { course: courseId },
     { $pull: { completedLessons: lesson._id } },
   );
 
-  const enrollments = await Enrollment.find({
-    course: lesson.course,
-    status: { $in: ["active", "completed"] },
-  });
-  await Promise.all(
-    enrollments.map((enrollment) => enrollment.recalculateProgress()),
-  );
+  // Update progress for all enrollments in this course
+  const totalLessons = await Lesson.countDocuments({ course: courseId });
+  if (totalLessons > 0) {
+    const enrollments = await Enrollment.find({
+      course: courseId,
+      status: { $in: ["active", "completed"] },
+    })
+      .select("completedLessons status progress")
+      .lean();
+
+    if (enrollments.length > 0) {
+      const ops = enrollments.map((e) => {
+        const done = Array.isArray(e.completedLessons)
+          ? e.completedLessons.length
+          : 0;
+        const progress =
+          totalLessons === 0
+            ? 0
+            : Math.min(100, Math.round((done / totalLessons) * 100));
+        const status: "active" | "completed" =
+          progress === 100
+            ? "completed"
+            : e.status === "completed"
+              ? "active"
+              : (e.status as "active" | "completed");
+        return {
+          updateOne: {
+            filter: { _id: e._id },
+            update: {
+              $set: { progress, status },
+              ...(progress === 100 ? {} : { $unset: { completedAt: 1 } }),
+            },
+          },
+        };
+      });
+      if (ops.length > 0) await Enrollment.bulkWrite(ops as never);
+    }
+  } else {
+    // If there are no lessons left in the course, reset progress and status for all enrollments
+    await Enrollment.updateMany(
+      { course: courseId },
+      { $set: { progress: 0, status: "active" } },
+    );
+  }
 
   res.status(200).json({
     status: "success",
@@ -154,7 +192,12 @@ export const getCourseLessons = async (
     hasAccess = await Enrollment.isEnrolled(req.user._id, courseId);
   }
 
-  const lessons = await Lesson.find({ course: courseId }).sort({ order: 1 });
+  const lessons = await Lesson.find({ course: courseId })
+    .sort({ order: 1 })
+    .select("title description order duration isPreview type videoUrl articleBody")
+    .lean();
+
+  const totalDuration = lessons.reduce((sum, l) => sum + l.duration, 0);
 
   const payload = hasAccess
     ? lessons
@@ -164,14 +207,14 @@ export const getCourseLessons = async (
           : {
               _id: l._id,
               title: l.title,
+              description: l.description,
               order: l.order,
               duration: l.duration,
               isPreview: false,
+              type: l.type,
               locked: true,
             },
       );
-
-  const totalDuration = lessons.reduce((sum, l) => sum + l.duration, 0);
 
   res.status(200).json({
     status: "success",

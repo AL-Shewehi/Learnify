@@ -63,7 +63,7 @@ const lessonSchema = new Schema<ILesson>(
   { timestamps: true, versionKey: false },
 );
 
-lessonSchema.index({ course: 1, order: 1 });
+lessonSchema.index({ course: 1, order: 1 }, { unique: true });
 
 lessonSchema.pre("validate", function () {
   if (this.type === "video" && !this.videoUrl) {

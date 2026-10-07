@@ -168,13 +168,15 @@ export const getCourses = async (
 
   const skip = (query.page - 1) * query.limit;
 
-  const courses = await Course.find(filter)
-    .sort({ [sortField]: sortOrder })
-    .skip(skip)
-    .limit(query.limit)
-    .populate("instructor", "name email");
-
-  const total = await Course.countDocuments(filter);
+  const [courses, total] = await Promise.all([
+    Course.find(filter)
+      .sort({ [sortField]: sortOrder })
+      .skip(skip)
+      .limit(query.limit)
+      .populate("instructor", "name email")
+      .lean(),
+    Course.countDocuments(filter),
+  ]);
 
   res.status(200).json({
     status: "success",

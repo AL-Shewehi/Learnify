@@ -25,6 +25,7 @@ export interface CourseResponse {
   totalStudents: number;
   rating: number;
   instructor: InstructorPreview;
+  isEnrolled?: boolean;
   createdAt: string;
   updatedAt: string;
 }

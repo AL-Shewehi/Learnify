@@ -109,7 +109,6 @@ const sendTokenResponse = (
   setAuthCookie(res, token);
   res.status(statusCode).json({
     status: "success",
-    token,
     data: { user: toUserResponse(user) },
   });
 };

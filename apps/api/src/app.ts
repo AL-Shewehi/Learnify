@@ -15,7 +15,7 @@ import lessonRoutes from "./routes/lessonRoutes.js";
 
 
 const app: Express = express();
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 
 // ============ Middlewares ============
 
@@ -40,6 +40,18 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 app.use("/api", limiter);
+
+const authLimiter = rateLimit({
+  max: 20,
+  windowMs: 15 * 60 * 1000,
+  message: "Too many auth attempts, please try again in 15 minutes!",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/api/v1/auth/login", authLimiter);
+app.use("/api/v1/auth/signup", authLimiter);
+app.use("/api/v1/auth/forgot-password", authLimiter);
+app.use("/api/v1/auth/reset-password", authLimiter);
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));

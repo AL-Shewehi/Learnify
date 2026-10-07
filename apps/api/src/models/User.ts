@@ -17,7 +17,6 @@ export interface IUser extends Document {
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
-  comparePassword(candidatePassword: string): Promise<boolean>;
   createPasswordResetToken(): string;
   changedPasswordAfter(JWTTimestamp: number): boolean;
 }
@@ -117,6 +116,9 @@ userSchema.methods.changedPasswordAfter = function (
 
   return false;
 };
+
+userSchema.index({ role: 1 });
+userSchema.index({ isActive: 1 });
 
 const User = mongoose.model<IUser>("User", userSchema);
 

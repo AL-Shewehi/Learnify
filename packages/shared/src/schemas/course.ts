@@ -25,13 +25,22 @@ export const createCourseSchema = z
 
 export const updateCourseSchema = createCourseSchema.partial();
 
+export const COURSE_SORT_OPTIONS = [
+  "-createdAt",
+  "createdAt",
+  "-totalStudents",
+  "-rating",
+  "price",
+  "-price",
+] as const;
+
 export const getCoursesQuerySchema = z.object({
   page: z.coerce.number().int().min(1).max(100).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  subject: z.string().optional(),
+  subject: z.enum(COURSE_SUBJECTS).optional(),
   level: z.enum(COURSE_LEVELS).optional(),
-  sort: z.string().default("createdAt"),
-  search: z.string().optional(),
+  sort: z.enum(COURSE_SORT_OPTIONS).default("-createdAt"),
+  search: z.string().max(100).optional(),
 });
 
 export const suspendCourseSchema = z

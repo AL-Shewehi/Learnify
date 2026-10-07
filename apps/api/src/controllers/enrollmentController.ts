@@ -5,6 +5,7 @@ import ApiError from "../utils/ApiError.js";
 import { getRouteParam } from "../utils/getRouteParam.js";
 import {
   createEnrollmentSchema,
+  getCourseEnrollmentsQuerySchema,
   getMyEnrollmentsQuerySchema,
   updateProgressSchema,
 } from "@learnify/shared";
@@ -147,7 +148,8 @@ export const getMyEnrollments = async (
       .populate("course", "title coverImage price level instructor")
       .sort({ enrolledAt: -1 })
       .skip(skip)
-      .limit(input.limit),
+      .limit(input.limit)
+      .lean(),
     Enrollment.countDocuments(filter),
   ]);
 
@@ -179,7 +181,7 @@ export const getCourseEnrollments = async (
     throw new ApiError("Only instructors can view course enrollments", 403);
   }
 
-  const course = await Course.findById(courseId);
+  const course = await Course.findById(courseId).select("_id instructor");
   if (!course) {
     throw new ApiError("Course not found", 404);
   }
@@ -194,9 +196,22 @@ export const getCourseEnrollments = async (
     );
   }
 
-  //  Stats + Enrollments
-  const [enrollments, stats] = await Promise.all([
-    Enrollment.findByCourse(courseId),
+  const parsed = getCourseEnrollmentsQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw new ApiError(parsed.error.issues[0].message, 400);
+  }
+  const { page, limit } = parsed.data;
+  const skip = (page - 1) * limit;
+
+  const [enrollments, total, stats] = await Promise.all([
+    Enrollment.find({ course: course._id })
+      .populate("student", "name email")
+      .select("student status progress enrolledAt")
+      .sort({ enrolledAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Enrollment.countDocuments({ course: course._id }),
     Enrollment.aggregate([
       { $match: { course: course._id } },
       {
@@ -220,6 +235,12 @@ export const getCourseEnrollments = async (
   res.status(200).json({
     status: "success",
     results: enrollments.length,
+    pagination: {
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      limit,
+    },
     stats: {
       active: statsMap.active?.count ?? 0,
       completed: statsMap.completed?.count ?? 0,
