@@ -3,3 +3,4 @@ export { useCourseLessons, useLessonMutations } from "./hooks/use-lessons";
 export { LessonsManager } from "./components/lessons-manager";
 export { LessonForm } from "./components/lesson-form";
 export { LearningPage } from "./components/learning-page";
+export { LessonMedia } from "./components/lesson-media";

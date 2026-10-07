@@ -2,7 +2,9 @@
 
 import { useCourse } from "@/features/courses";
 import { useCourseStudents } from "../hooks/use-course-students";
+import { EmptyState, SectionEyebrow } from "@/components/ui";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getInitials } from "@/lib/format";
 import type { UserResponse } from "@learnify/shared";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -23,9 +25,7 @@ export function CourseStudents({ courseId }: { courseId: string }) {
   return (
     <div className="container mx-auto max-w-4xl">
       {/* Header */}
-      <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-        Instructor · students
-      </p>
+      <SectionEyebrow>Instructor · students</SectionEyebrow>
       <h1 className="mt-2 font-display text-3xl sm:text-4xl">
         {course?.title ?? "…"}
       </h1>
@@ -57,22 +57,15 @@ export function CourseStudents({ courseId }: { courseId: string }) {
             ))}
           </div>
         ) : list.length === 0 ? (
-          <div className="rounded-md border border-dashed border-border py-16 text-center">
-            <p className="font-display text-xl">No students yet</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Publish the course and share the link — they&apos;ll show up here.
-            </p>
-          </div>
+          <EmptyState
+            title="No students yet"
+            description="Publish the course and share the link — they'll show up here."
+          />
         ) : (
           <ol className="divide-y divide-border border-y border-border">
             {list.map((enrollment) => {
               const student = enrollment.student as UserResponse;
-              const initials = (student.name ?? "?")
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase();
+              const initials = getInitials(student.name ?? "?");
 
               return (
                 <li key={enrollment._id} className="flex items-center gap-4 py-4">

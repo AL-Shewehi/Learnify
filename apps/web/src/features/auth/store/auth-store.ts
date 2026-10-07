@@ -2,7 +2,6 @@
 import {create} from "zustand";
 import { setUnauthorizedHandler } from "@/lib/api";
 import type { UserResponse } from "@learnify/shared";
-import { useRouter } from "next/navigation";
 
 interface AuthState {
   user: UserResponse | null;
@@ -21,6 +20,9 @@ export const useAuthStore = create<AuthState>((set) => ({
 setUnauthorizedHandler(() => {
     useAuthStore.getState().setUser(null);
     if (typeof window !== "undefined") {
-        useRouter().push("/login")
+        const path = window.location.pathname;
+        if (path !== "/login" && !path.startsWith("/login?")) {
+            window.location.href = "/login";
+        }
     }
 })

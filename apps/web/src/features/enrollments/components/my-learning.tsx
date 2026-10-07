@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyState, SectionEyebrow } from "@/components/ui";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CourseCover } from "@/features/courses";
 import type { CourseResponse } from "@learnify/shared";
@@ -20,9 +21,7 @@ export function MyLearning() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-        Your shelf
-      </p>
+      <SectionEyebrow>Your shelf</SectionEyebrow>
       <h1 className="mt-2 font-display text-4xl sm:text-5xl">My learning</h1>
 
       <div className="mt-10">
@@ -33,18 +32,18 @@ export function MyLearning() {
             ))}
           </div>
         ) : (enrollments?.length ?? 0) === 0 ? (
-          <div className="rounded-md border border-dashed border-border py-16 text-center">
-            <p className="font-display text-xl">Your shelf is empty</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Enroll in a course and it&apos;ll live here — progress and all.
-            </p>
-            <Button asChild className="mt-6">
-              <Link href="/courses">
-                Browse the catalog
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
+          <EmptyState
+            title="Your shelf is empty"
+            description="Enroll in a course and it'll live here — progress and all."
+            action={
+              <Button asChild>
+                <Link href="/courses">
+                  Browse the catalog
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            }
+          />
         ) : (
           <ol className="space-y-4">
             {enrollments!.map((enrollment) => {
@@ -82,13 +81,11 @@ export function MyLearning() {
                     </span>
 
                     <span className="hidden shrink-0 items-center sm:flex">
-                      <Button variant="outline" size="sm" asChild>
-                        <span>
-                          {enrollment.status === "completed"
-                            ? "Review"
-                            : "Continue"}
-                        </span>
-                      </Button>
+                      <span className="inline-flex h-8 items-center rounded-md border border-input bg-background px-3 text-sm font-medium">
+                        {enrollment.status === "completed"
+                          ? "Review"
+                          : "Continue"}
+                      </span>
                     </span>
                   </Link>
                 </li>

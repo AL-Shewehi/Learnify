@@ -2,11 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { enrollmentsApi } from "../api/enrollments-api"
+import { qk } from "@/lib/query-keys"
 
 export function useMyEnrollments() {
     return useQuery({
-        queryKey: ["my-enrollments"],
+        queryKey: qk.myEnrollments,
         queryFn: enrollmentsApi.myEnrollments,
-        staleTime: 30_000
     })
 }

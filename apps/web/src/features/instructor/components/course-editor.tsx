@@ -1,18 +1,36 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCourse } from "@/features/courses";
 import { instructorApi } from "../api/instructor-api";
 import { CourseForm } from "./course-form";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState, SectionEyebrow } from "@/components/ui";
+import { qk } from "@/lib/query-keys";
 import type { CreateCourseInput } from "@learnify/shared";
 
 export function CourseEditor({ courseId }: { courseId: string }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: course, isLoading, isError } = useCourse(courseId);
-  const [isPending, setIsPending] = useState(false);
+  const update = useMutation({
+    mutationFn: (input: CreateCourseInput) =>
+      instructorApi.update(courseId, input),
+    onSuccess: () => {
+      toast.success("Course updated");
+      queryClient.invalidateQueries({ queryKey: qk.course(courseId) });
+      queryClient.invalidateQueries({ queryKey: qk.courses({}) });
+      router.push("/instructor/courses");
+    },
+    onError: (err) => {
+      toast.error(
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? "Couldn't update the course",
+      );
+    },
+  });
 
   if (isLoading) {
     return (
@@ -25,36 +43,18 @@ export function CourseEditor({ courseId }: { courseId: string }) {
 
   if (isError || !course) {
     return (
-      <div className="rounded-md border border-border py-16 text-center">
-        <p className="font-display text-xl">Couldn&apos;t load this course</p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          It may not exist, or you don&apos;t have permission to edit it.
-        </p>
-      </div>
+      <EmptyState
+        title="Couldn't load this course"
+        description="It may not exist, or you don't have permission to edit it."
+      />
     );
   }
 
-  const onSubmit = async (input: CreateCourseInput) => {
-    setIsPending(true);
-    try {
-      await instructorApi.update(courseId, input);
-      toast.success("Course updated");
-      router.push("/instructor/courses");
-    } catch (err) {
-      toast.error(
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Couldn't update the course",
-      );
-    } finally {
-      setIsPending(false);
-    }
-  };
+  const onSubmit = (input: CreateCourseInput) => update.mutate(input);
 
   return (
     <div className="container mx-auto max-w-2xl">
-      <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-        Instructor workspace · edit course
-      </p>
+      <SectionEyebrow>Instructor workspace · edit course</SectionEyebrow>
       <h1 className="mt-2 font-display text-4xl">Edit course</h1>
       <p className="mt-3 text-sm text-muted-foreground">
         Changes apply immediately — drafts and published courses alike.
@@ -64,7 +64,7 @@ export function CourseEditor({ courseId }: { courseId: string }) {
         <CourseForm
           initial={course}
           onSubmit={onSubmit}
-          isPending={isPending}
+          isPending={update.isPending}
           submitLabel="Save changes"
           onCancel={() => router.push("/instructor/courses")}
         />

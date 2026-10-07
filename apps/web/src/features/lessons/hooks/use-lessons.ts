@@ -4,10 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { CreateLessonInput, UpdateLessonInput } from "@learnify/shared";
 import { lessonsApi } from "../api/lessons-api";
+import { qk } from "@/lib/query-keys";
 
 export function useCourseLessons(courseId: string) {
   return useQuery({
-    queryKey: ["lessons", courseId],
+    queryKey: qk.lessons(courseId),
     queryFn: () => lessonsApi.listForCourse(courseId),
   });
 }
@@ -16,8 +17,8 @@ export function useLessonMutations(courseId: string) {
   const queryClient = useQueryClient();
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["lessons", courseId] });
-    queryClient.invalidateQueries({ queryKey: ["course", courseId] });
+    queryClient.invalidateQueries({ queryKey: qk.lessons(courseId) });
+    queryClient.invalidateQueries({ queryKey: qk.course(courseId) });
   };
 
   const create = useMutation({

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Check, CheckCircle2, Circle, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,10 +8,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCourse } from "@/features/courses";
 import { useMyEnrollments, ProgressBar } from "@/features/enrollments";
 import { cn } from "@/lib/utils";
-import { getEmbedInfo } from "@/lib/video";
 import type { LessonResponse } from "@learnify/shared";
 import { useCourseLessons } from "../hooks/use-lessons";
 import { useMarkComplete } from "../hooks/use-mark-complete";
+import { LessonMedia } from "./lesson-media";
 import Link from "next/link";
 
 export function LearningPage({ courseId }: { courseId: string }) {
@@ -24,30 +25,62 @@ export function LearningPage({ courseId }: { courseId: string }) {
     useMyEnrollments();
   const markComplete = useMarkComplete(courseId);
 
-  const enrollment = enrollments?.find((e) => {
-    const c = e.course as { _id?: string };
-    return (c._id ?? e.course) === courseId;
-  });
+  const enrollment = useMemo(
+    () =>
+      enrollments?.find((e) => {
+        const c = e.course as { _id?: string };
+        return (c._id ?? e.course) === courseId;
+      }),
+    [enrollments, courseId],
+  );
 
-  const lessons = (lessonsData?.lessons ?? []) as LessonResponse[];
-  const completed = new Set(enrollment?.completedLessons ?? []);
-  const current = lessons.find((l) => l._id === selectedId) ?? lessons[0];
+  const lessons = useMemo(
+    () => (lessonsData?.lessons ?? []) as LessonResponse[],
+    [lessonsData],
+  );
+  const completed = useMemo(
+    () => new Set(enrollment?.completedLessons ?? []),
+    [enrollment?.completedLessons],
+  );
+  const current = useMemo(
+    () => lessons.find((l) => l._id === selectedId) ?? lessons[0],
+    [lessons, selectedId],
+  );
 
-  const currentIndex = lessons.findIndex((l) => l._id === current?._id);
+  const currentIndex = useMemo(
+    () => lessons.findIndex((l) => l._id === current?._id),
+    [lessons, current?._id],
+  );
   const next = currentIndex >= 0 ? lessons[currentIndex + 1] : undefined;
   const isDone = current ? completed.has(current._id) : false;
 
-  const selectLesson = (id: string) =>
-    router.push(`/my-learning/${courseId}?lesson=${id}`);
+  const preview = useMemo(
+    () =>
+      !enrollment
+        ? lessons.find((l) => l._id === selectedId && !l.locked)
+        : undefined,
+    [enrollment, lessons, selectedId],
+  );
 
-  const completeAndContinue = () => {
+  useEffect(() => {
+    if (preview) {
+      router.replace(`/courses/${courseId}?lesson=${preview._id}`);
+    }
+  }, [preview, courseId, router]);
+
+  const selectLesson = useCallback(
+    (id: string) => router.push(`/my-learning/${courseId}?lesson=${id}`),
+    [router, courseId],
+  );
+
+  const completeAndContinue = useCallback(() => {
     if (!current) return;
     markComplete.mutate(current._id, {
       onSuccess: () => {
         if (next) selectLesson(next._id);
       },
     });
-  };
+  }, [current, next, markComplete, selectLesson]);
 
   if (isLoading || isEnrollmentsLoading) {
     return (
@@ -59,18 +92,26 @@ export function LearningPage({ courseId }: { courseId: string }) {
   }
 
   if (!enrollment) {
+    if (preview) {
+      return (
+        <div className="py-20 text-center font-mono text-xs text-muted-foreground">
+          Opening the free preview…
+        </div>
+      );
+    }
+
     return (
       <div className="py-20 text-center">
         <p className="font-display text-2xl">You&apos;re not enrolled here</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Free previews play on the course page — enrollment unlocks everything.
+        </p>
         <Button asChild className="mt-6">
           <Link href={`/courses/${courseId}`}>View course page</Link>
         </Button>
       </div>
     );
   }
-
-  const embed =
-    current?.type === "video" ? getEmbedInfo(current.videoUrl) : null;
 
   return (
     <>
@@ -97,33 +138,7 @@ export function LearningPage({ courseId }: { courseId: string }) {
         <div>
           {current ? (
             <>
-              {current.type === "video" && embed ? (
-                embed.kind === "iframe" ? (
-                  <div className="aspect-video overflow-hidden rounded-md border border-border">
-                    <iframe
-                      src={embed.src}
-                      title={current.title}
-                      className="h-full w-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                ) : (
-                  <video
-                    src={embed.src}
-                    controls
-                    className="aspect-video w-full rounded-md border border-border bg-black"
-                  />
-                )
-              ) : current.type === "article" ? (
-                <article className="whitespace-pre-line break-words rounded-md border border-border bg-card p-4 leading-7 sm:p-6">
-                  {current.articleBody}
-                </article>
-              ) : (
-                <div className="rounded-md border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-                  This lesson has no playable content yet.
-                </div>
-              )}
+              <LessonMedia lesson={current} />
 
               <div className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
@@ -142,8 +157,8 @@ export function LearningPage({ courseId }: { courseId: string }) {
                       Completed
                     </span>
                   ) : (
-                      <Button
-                        className="w-full sm:w-auto"
+                    <Button
+                      className="w-full sm:w-auto"
                       onClick={completeAndContinue}
                       disabled={markComplete.isPending}
                     >
@@ -153,9 +168,9 @@ export function LearningPage({ courseId }: { courseId: string }) {
                   )}
 
                   {isDone && next && (
-                      <Button
+                    <Button
                       variant="outline"
-                        className="w-full sm:w-auto"
+                      className="w-full sm:w-auto"
                       onClick={() => selectLesson(next._id)}
                     >
                       Next lesson →
@@ -184,6 +199,7 @@ export function LearningPage({ courseId }: { courseId: string }) {
               return (
                 <li key={lesson._id}>
                   <button
+                    type="button"
                     onClick={() => selectLesson(lesson._id)}
                     className={cn(
                       "flex w-full min-w-0 items-center gap-3 py-3 text-left text-sm transition-colors",

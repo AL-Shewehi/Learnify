@@ -40,7 +40,11 @@ export const adminApi = {
 
   remove: (id: string) => api.delete(`/admin/users/${id}`).then((r) => r.data),
   suspendCourse: (id: string) =>
-    api.patch(`/courses/${id}/suspend`).then((r) => r.data),
+    api
+      .patch(`/courses/${id}/suspend`, {
+        reason: "Suspended by administrator",
+      })
+      .then((r) => r.data),
   activateCourse: (id: string) =>
     api.patch(`/courses/${id}/activate`).then((r) => r.data),
 };

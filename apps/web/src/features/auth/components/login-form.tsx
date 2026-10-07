@@ -23,7 +23,10 @@ export function LoginForm() {
   const onSubmit = handleSubmit(async (input) => {
     try {
       await login.mutateAsync(input);
-      router.push(searchParams.get("from") ?? "/");
+      const from = searchParams.get("from");
+      const safeFrom =
+        from && from.startsWith("/") && !from.startsWith("//") ? from : "/";
+      router.push(safeFrom);
     } catch {
       // Handle error (e.g., show a notification or log the error)
     }
