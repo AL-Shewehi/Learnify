@@ -7,12 +7,14 @@ import type { CourseResponse, LessonResponse } from "@learnify/shared";
 import { Lock, PlayCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCourseLessons } from "@/features/lessons";
+import { ReviewsSection } from "@/features/reviews";
 
-type TabId = "overview" | "curriculum" | "instructor";
+type TabId = "overview" | "curriculum" | "reviews" | "instructor";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "curriculum", label: "Curriculum" },
+  { id: "reviews", label: "Reviews" },
   { id: "instructor", label: "Instructor" },
 ];
 
@@ -64,6 +66,7 @@ export function CourseTabs({
       >
         {activeTab === "overview" && <Overview course={course} />}
         {activeTab === "curriculum" && <Curriculum course={course} onSelect={onSelect} />}
+        {activeTab === "reviews" && <ReviewsSection course={course} />}
         {activeTab === "instructor" && <Instructor course={course} />}
       </div>
     </section>

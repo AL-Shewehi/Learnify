@@ -78,6 +78,9 @@ export function CourseHero({
                 <span className="font-semibold">
                   {course.rating.toFixed(1)}
                 </span>
+                <span className="text-muted-foreground">
+                  ({course.ratingsCount})
+                </span>
               </span>
               <span className="flex items-center gap-1.5 text-muted-foreground">
                 <Users className="h-4 w-4" />
