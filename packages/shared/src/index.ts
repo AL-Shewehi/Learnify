@@ -12,3 +12,5 @@ export * from "./types/lesson.js";
 export * from "./schemas/lesson.js";
 export * from "./types/checkout.js";
 export * from "./schemas/checkout.js";
+export * from "./types/review.js";
+export * from "./schemas/review.js";

@@ -21,6 +21,7 @@ export interface ICourse extends Document {
   prerequisites: string[];
   totalStudents: number;
   rating: number;
+  ratingsCount: number;
   instructor: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -107,6 +108,11 @@ const courseSchema = new Schema<ICourse>(
       default: 0,
       min: [0, "Rating must be at least 0"],
       max: [5, "Rating must be at most 5"],
+    },
+    ratingsCount: {
+      type: Number,
+      default: 0,
+      min: [0, "Ratings count cannot be negative"],
     },
     instructor: {
       type: Schema.Types.ObjectId,

@@ -10,6 +10,7 @@ import { notFound, globalErrorHandler } from "./middlewares/errorMiddleware.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes";
 import cookieParser from "cookie-parser";
 import lessonRoutes from "./routes/lessonRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 
 
 
@@ -71,6 +72,7 @@ app.use("/api/v1/courses", courseRoutes);
 app.use("/api/v1", enrollmentRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1", lessonRoutes);
+app.use("/api/v1", reviewRoutes);
 
 // ============ 404 + Error Handling ============
 app.use(notFound);

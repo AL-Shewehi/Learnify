@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Course from "../models/Course.js";
+import Review from "../models/Review.js";
 
 dotenv.config({ path: ".env" });
 
@@ -18,16 +19,31 @@ async function fixIndexes() {
 
     // 1. امسح كل الـ indexes القديمة
     await Course.collection.dropIndexes();
-    console.log("✅ Dropped all old indexes");
+    console.log("✅ Dropped all old Course indexes");
 
     // 2. أنشئ الـ indexes من الـ schema الجديد
     await Course.syncIndexes();
-    console.log("✅ Recreated indexes from schema");
+    console.log("✅ Recreated Course indexes from schema");
 
-    // 3. اعرض الـ indexes الحالية للتأكيد
+    await Review.syncIndexes();
+    console.log("✅ Synced Review indexes from schema");
+
+    // 3. Backfill ratingsCount for courses created before the field existed
+    const backfill = await Course.updateMany(
+      { ratingsCount: { $exists: false } },
+      { $set: { ratingsCount: 0 } },
+    );
+    console.log(`✅ Backfilled ratingsCount on ${backfill.modifiedCount} course(s)`);
+
+    // 4. اعرض الـ indexes الحالية للتأكيد
     const indexes = await Course.collection.indexes();
-    console.log("📋 Current indexes:");
+    console.log("📋 Current Course indexes:");
     indexes.forEach((index) => {
+      console.log(`   - ${index.name}`);
+    });
+    const reviewIndexes = await Review.collection.indexes();
+    console.log("📋 Current Review indexes:");
+    reviewIndexes.forEach((index) => {
       console.log(`   - ${index.name}`);
     });
 
@@ -39,4 +55,4 @@ async function fixIndexes() {
   }
 }
 
-fixIndexes();
+void fixIndexes();

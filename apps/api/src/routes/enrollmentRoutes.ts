@@ -9,11 +9,29 @@ import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 
 const router: ExpressRouter = Router();
 
-router.use(protect);
-
-router.post("/courses/:courseId/enroll", restrictTo("student"), createEnrollment);
-router.get("/enrollments/me", restrictTo("student"), getMyEnrollments);
-router.get("/courses/:courseId/enrollments", restrictTo("instructor", "admin"), getCourseEnrollments);
-router.patch("/courses/:courseId/progress",restrictTo("student"),updateProgress);
+router.post(
+  "/courses/:courseId/enroll",
+  protect,
+  restrictTo("student"),
+  createEnrollment,
+);
+router.get(
+  "/enrollments/me",
+  protect,
+  restrictTo("student"),
+  getMyEnrollments,
+);
+router.get(
+  "/courses/:courseId/enrollments",
+  protect,
+  restrictTo("instructor", "admin"),
+  getCourseEnrollments,
+);
+router.patch(
+  "/courses/:courseId/progress",
+  protect,
+  restrictTo("student"),
+  updateProgress,
+);
 
 export default router;

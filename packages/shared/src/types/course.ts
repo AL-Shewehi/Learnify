@@ -24,6 +24,7 @@ export interface CourseResponse {
   prerequisites: string[];
   totalStudents: number;
   rating: number;
+  ratingsCount: number;
   instructor: InstructorPreview;
   isEnrolled?: boolean;
   createdAt: string;
