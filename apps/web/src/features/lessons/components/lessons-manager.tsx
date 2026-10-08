@@ -14,9 +14,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCourse } from "@/features/courses";
-import type { LessonResponse } from "@learnify/shared";
+import type { LessonResponse, SectionWithLessons } from "@learnify/shared";
 import { useCourseLessons, useLessonMutations } from "../hooks/use-lessons";
 import { LessonForm } from "./lesson-form";
+import { SectionsManager } from "./sections-manager";
 
 interface Props {
   courseId: string;
@@ -33,17 +34,124 @@ export function LessonsManager({ courseId }: Props) {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const lessons = data?.lessons ?? [];
+  const sections: SectionWithLessons[] = data?.sections ?? [];
+  const knownSectionIds = new Set(sections.map((s) => s._id));
+  const unsectioned = lessons.filter(
+    (l) => typeof l.section !== "string" || !knownSectionIds.has(l.section),
+  );
 
-  const move = (index: number, dir: -1 | 1) => {
+  const moveInGroup = (
+    group: LessonResponse[],
+    index: number,
+    dir: -1 | 1,
+  ) => {
     const target = index + dir;
-    if (target < 0 || target >= lessons.length) return;
+    if (target < 0 || target >= group.length) return;
     const ids = lessons.map((l) => l._id);
-    [ids[index], ids[target]] = [ids[target], ids[index]];
+    const ia = ids.indexOf(group[index]._id);
+    const ib = ids.indexOf(group[target]._id);
+    if (ia === -1 || ib === -1) return;
+    [ids[ia], ids[ib]] = [ids[ib], ids[ia]];
     reorder.mutate(ids);
   };
 
+  const globalIndexOf = (id: string) =>
+    lessons.findIndex((l) => l._id === id);
+
   const closeForm = () => {
     setForm(null);
+  };
+
+  const renderRow = (
+    lesson: LessonResponse,
+    group: LessonResponse[],
+    index: number,
+  ) => {
+    const globalIndex = globalIndexOf(lesson._id);
+    return (
+      <li key={lesson._id} className="flex items-center gap-4 py-4">
+        <span className="w-8 shrink-0 font-mono text-sm text-muted-foreground">
+          {String(globalIndex + 1).padStart(2, "0")}
+        </span>
+
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-medium">{lesson.title}</span>
+          <span className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              {lesson.type === "video" ? (
+                <Video className="h-3 w-3" />
+              ) : (
+                <FileText className="h-3 w-3" />
+              )}
+              {lesson.type}
+            </span>
+            <span>{lesson.duration} min</span>
+            {lesson.isPreview && (
+              <span className="flex items-center gap-1 text-primary">
+                <Eye className="h-3 w-3" />
+                free preview
+              </span>
+            )}
+          </span>
+        </span>
+
+        {/* Actions */}
+        <span className="flex shrink-0 items-center gap-1">
+          <button
+            onClick={() => moveInGroup(group, index, -1)}
+            disabled={index === 0 || reorder.isPending}
+            className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-30"
+            aria-label="Move up"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => moveInGroup(group, index, 1)}
+            disabled={index === group.length - 1 || reorder.isPending}
+            className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-30"
+            aria-label="Move down"
+          >
+            <ArrowDown className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setForm({ mode: "edit", lesson })}
+            className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+            aria-label="Edit"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+
+          {confirmDelete === lesson._id ? (
+            <>
+              <button
+                onClick={() =>
+                  remove.mutate(lesson._id, {
+                    onSuccess: () => setConfirmDelete(null),
+                  })
+                }
+                className="rounded px-2 py-1 text-xs font-semibold text-destructive underline underline-offset-4"
+              >
+                Confirm
+              </button>
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="rounded px-2 py-1 text-xs text-muted-foreground"
+              >
+                Keep
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setConfirmDelete(lesson._id)}
+              className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              aria-label="Delete"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+        </span>
+      </li>
+    );
   };
 
   return (
@@ -78,6 +186,7 @@ export function LessonsManager({ courseId }: Props) {
           <LessonForm
             courseId={courseId}
             initial={form.mode === "edit" ? form.lesson : undefined}
+            sections={sections}
             isPending={create.isPending || update.isPending}
             onCreate={(input) => create.mutate(input, { onSuccess: closeForm })}
             onUpdate={(input) =>
@@ -109,96 +218,53 @@ export function LessonsManager({ courseId }: Props) {
             </p>
           </div>
         ) : (
-          <ol className="divide-y divide-border border-y border-border">
-            {lessons.map((lesson, index) => (
-              <li key={lesson._id} className="flex items-center gap-4 py-4">
-                <span className="w-8 shrink-0 font-mono text-sm text-muted-foreground">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-medium">
-                    {lesson.title}
-                  </span>
-                  <span className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      {lesson.type === "video" ? (
-                        <Video className="h-3 w-3" />
-                      ) : (
-                        <FileText className="h-3 w-3" />
-                      )}
-                      {lesson.type}
-                    </span>
-                    <span>{lesson.duration} min</span>
-                    {lesson.isPreview && (
-                      <span className="flex items-center gap-1 text-primary">
-                        <Eye className="h-3 w-3" />
-                        free preview
-                      </span>
+          <div className="space-y-8">
+            {sections.map((section) => (
+              <div key={section._id}>
+                <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+                  {section.title} · {section.lessons.length}{" "}
+                  {section.lessons.length === 1 ? "lesson" : "lessons"}
+                </p>
+                {section.lessons.length === 0 ? (
+                  <p className="mt-2 rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
+                    Empty section — edit a lesson to move it here.
+                  </p>
+                ) : (
+                  <ol className="mt-2 divide-y divide-border border-y border-border">
+                    {section.lessons.map((lesson, index) =>
+                      renderRow(lesson, section.lessons, index),
                     )}
-                  </span>
-                </span>
-
-                {/* Actions */}
-                <span className="flex shrink-0 items-center gap-1">
-                  <button
-                    onClick={() => move(index, -1)}
-                    disabled={index === 0 || reorder.isPending}
-                    className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-30"
-                    aria-label="Move up"
-                  >
-                    <ArrowUp className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => move(index, 1)}
-                    disabled={index === lessons.length - 1 || reorder.isPending}
-                    className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-30"
-                    aria-label="Move down"
-                  >
-                    <ArrowDown className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => setForm({ mode: "edit", lesson })}
-                    className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-                    aria-label="Edit"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-
-                  {confirmDelete === lesson._id ? (
-                    <>
-                      <button
-                        onClick={() =>
-                          remove.mutate(lesson._id, {
-                            onSuccess: () => setConfirmDelete(null),
-                          })
-                        }
-                        className="rounded px-2 py-1 text-xs font-semibold text-destructive underline underline-offset-4"
-                      >
-                        Confirm
-                      </button>
-                      <button
-                        onClick={() => setConfirmDelete(null)}
-                        className="rounded px-2 py-1 text-xs text-muted-foreground"
-                      >
-                        Keep
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => setConfirmDelete(lesson._id)}
-                      className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                      aria-label="Delete"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </span>
-              </li>
+                  </ol>
+                )}
+              </div>
             ))}
-          </ol>
+
+            {unsectioned.length > 0 && (
+              <div>
+                {sections.length > 0 && (
+                  <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+                    Unsectioned · {unsectioned.length}{" "}
+                    {unsectioned.length === 1 ? "lesson" : "lessons"}
+                  </p>
+                )}
+                <ol
+                  className={
+                    sections.length > 0
+                      ? "mt-2 divide-y divide-border border-y border-border"
+                      : "divide-y divide-border border-y border-border"
+                  }
+                >
+                  {unsectioned.map((lesson, index) =>
+                    renderRow(lesson, unsectioned, index),
+                  )}
+                </ol>
+              </div>
+            )}
+          </div>
         )}
       </div>
+
+      <SectionsManager courseId={courseId} />
     </div>
   );
 }

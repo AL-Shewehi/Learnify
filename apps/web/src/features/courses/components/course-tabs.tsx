@@ -126,6 +126,13 @@ function Curriculum({
 }) {
   const { data, isLoading } = useCourseLessons(course._id);
   const lessons = data?.lessons ?? [];
+  const sections = data?.sections ?? [];
+  const knownSectionIds = new Set(sections.map((s) => s._id));
+  const unsectioned = lessons.filter(
+    (l) => typeof l.section !== "string" || !knownSectionIds.has(l.section),
+  );
+  const numberOf = (id: string) =>
+    lessons.findIndex((l) => l._id === id) + 1;
 
   if (isLoading) {
     return (
@@ -154,58 +161,56 @@ function Curriculum({
         {!data?.hasAccess && " · previews only"}
       </p>
 
-      <ol className="mt-6 divide-y divide-border border-y border-border">
-        {lessons.map((lesson, index) => (
-          <li key={lesson._id}>
-            <button
-              type="button"
-              onClick={() => onSelect?.(lesson)}
-              className={cn(
-                "flex w-full items-start gap-3 py-4 text-left transition-colors sm:items-center sm:gap-4",
-                lesson.locked
-                  ? "cursor-pointer opacity-90 hover:opacity-100"
-                  : "hover:text-primary",
-              )}
-            >
-              <span className="w-6 shrink-0 pt-0.5 font-mono text-sm text-muted-foreground sm:w-8 sm:pt-0">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-
-              <span className="min-w-0 flex-1">
-                <span className="flex min-w-0 items-start gap-2 font-medium">
-                  {lesson.locked ? (
-                    <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  ) : (
-                    <PlayCircle className="h-4 w-4 shrink-0 text-primary" />
-                  )}
-                  <span
-                    className={cn(
-                      "break-words",
-                      lesson.locked ? "text-muted-foreground" : "",
-                    )}
-                  >
-                    {lesson.title}
-                  </span>
-                </span>
-                {!lesson.locked && lesson.description && (
-                  <span className="mt-1 block text-sm text-muted-foreground">
-                    {lesson.description}
-                  </span>
-                )}
-              </span>
-
-              <span className="flex shrink-0 flex-col items-end gap-1 text-right text-xs text-muted-foreground sm:flex-row sm:items-center sm:gap-3 sm:text-left">
-                {!lesson.locked && lesson.isPreview && (
-                  <span className="whitespace-nowrap font-medium text-primary">
-                    free preview
-                  </span>
-                )}
-                <span className="whitespace-nowrap">{lesson.duration} min</span>
-              </span>
-            </button>
-          </li>
+      <div className="mt-6 space-y-8">
+        {sections.map((section) => (
+          <div key={section._id}>
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+              {section.title} · {plural(section.lessons.length, "lesson")}
+            </p>
+            <ol className="mt-3 divide-y divide-border border-y border-border">
+              {section.lessons.map((lesson) => (
+                <CurriculumRow
+                  key={lesson._id}
+                  lesson={lesson}
+                  number={numberOf(lesson._id)}
+                  onSelect={onSelect}
+                />
+              ))}
+            </ol>
+          </div>
         ))}
-      </ol>
+
+        {unsectioned.length > 0 && sections.length > 0 && (
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+              More lessons
+            </p>
+            <ol className="mt-3 divide-y divide-border border-y border-border">
+              {unsectioned.map((lesson) => (
+                <CurriculumRow
+                  key={lesson._id}
+                  lesson={lesson}
+                  number={numberOf(lesson._id)}
+                  onSelect={onSelect}
+                />
+              ))}
+            </ol>
+          </div>
+        )}
+
+        {sections.length === 0 && (
+          <ol className="divide-y divide-border border-y border-border">
+            {lessons.map((lesson) => (
+              <CurriculumRow
+                key={lesson._id}
+                lesson={lesson}
+                number={numberOf(lesson._id)}
+                onSelect={onSelect}
+              />
+            ))}
+          </ol>
+        )}
+      </div>
 
       {!data?.hasAccess && (
         <p className="mt-5 text-sm text-muted-foreground">
@@ -214,6 +219,67 @@ function Curriculum({
         </p>
       )}
     </div>
+  );
+}
+
+function CurriculumRow({
+  lesson,
+  number,
+  onSelect,
+}: {
+  lesson: LessonResponse;
+  number: number;
+  onSelect?: (lesson: LessonResponse) => void;
+}) {
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={() => onSelect?.(lesson)}
+        className={cn(
+          "flex w-full items-start gap-3 py-4 text-left transition-colors sm:items-center sm:gap-4",
+          lesson.locked
+            ? "cursor-pointer opacity-90 hover:opacity-100"
+            : "hover:text-primary",
+        )}
+      >
+        <span className="w-6 shrink-0 pt-0.5 font-mono text-sm text-muted-foreground sm:w-8 sm:pt-0">
+          {String(number).padStart(2, "0")}
+        </span>
+
+        <span className="min-w-0 flex-1">
+          <span className="flex min-w-0 items-start gap-2 font-medium">
+            {lesson.locked ? (
+              <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            ) : (
+              <PlayCircle className="h-4 w-4 shrink-0 text-primary" />
+            )}
+            <span
+              className={cn(
+                "break-words",
+                lesson.locked ? "text-muted-foreground" : "",
+              )}
+            >
+              {lesson.title}
+            </span>
+          </span>
+          {!lesson.locked && lesson.description && (
+            <span className="mt-1 block text-sm text-muted-foreground">
+              {lesson.description}
+            </span>
+          )}
+        </span>
+
+        <span className="flex shrink-0 flex-col items-end gap-1 text-right text-xs text-muted-foreground sm:flex-row sm:items-center sm:gap-3 sm:text-left">
+          {!lesson.locked && lesson.isPreview && (
+            <span className="whitespace-nowrap font-medium text-primary">
+              free preview
+            </span>
+          )}
+          <span className="whitespace-nowrap">{lesson.duration} min</span>
+        </span>
+      </button>
+    </li>
   );
 }
 

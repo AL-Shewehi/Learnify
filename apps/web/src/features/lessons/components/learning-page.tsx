@@ -38,6 +38,20 @@ export function LearningPage({ courseId }: { courseId: string }) {
     () => (lessonsData?.lessons ?? []) as LessonResponse[],
     [lessonsData],
   );
+  const sections = useMemo(
+    () => lessonsData?.sections ?? [],
+    [lessonsData],
+  );
+  const unsectioned = useMemo(() => {
+    const known = new Set(sections.map((s) => s._id));
+    return lessons.filter(
+      (l) => typeof l.section !== "string" || !known.has(l.section),
+    );
+  }, [lessons, sections]);
+  const numberOf = useCallback(
+    (id: string) => lessons.findIndex((l) => l._id === id) + 1,
+    [lessons],
+  );
   const completed = useMemo(
     () => new Set(enrollment?.completedLessons ?? []),
     [enrollment?.completedLessons],
@@ -191,49 +205,113 @@ export function LearningPage({ courseId }: { courseId: string }) {
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
             Curriculum · {completed.size}/{lessons.length} done
           </p>
-          <ol className="mt-4 divide-y divide-border border-y border-border">
-            {lessons.map((lesson, index) => {
-              const done = completed.has(lesson._id);
-              const active = lesson._id === current?._id;
+          <div className="mt-4 space-y-6">
+            {sections.map((section) => (
+              <div key={section._id}>
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                  {section.title}
+                </p>
+                <ol className="mt-2 divide-y divide-border border-y border-border">
+                  {section.lessons.map((lesson) => (
+                    <SidebarRow
+                      key={lesson._id}
+                      lesson={lesson as LessonResponse}
+                      number={numberOf(lesson._id)}
+                      done={completed.has(lesson._id)}
+                      active={lesson._id === current?._id}
+                      onSelect={selectLesson}
+                    />
+                  ))}
+                </ol>
+              </div>
+            ))}
 
-              return (
-                <li key={lesson._id}>
-                  <button
-                    type="button"
-                    onClick={() => selectLesson(lesson._id)}
-                    className={cn(
-                      "flex w-full min-w-0 items-center gap-3 py-3 text-left text-sm transition-colors",
-                      active ? "text-primary" : "hover:text-primary",
-                    )}
-                  >
-                    <span className="w-6 shrink-0 font-mono text-xs text-muted-foreground">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    {done ? (
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                    ) : active ? (
-                      <PlayCircle className="h-4 w-4 shrink-0 text-primary" />
-                    ) : (
-                      <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    )}
-                    <span
-                      className={cn(
-                        "min-w-0 flex-1 break-words",
-                        active && "font-semibold",
-                      )}
-                    >
-                      {lesson.title}
-                    </span>
-                    <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
-                      {lesson.duration}m
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
+            {unsectioned.length > 0 && sections.length > 0 && (
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                  More lessons
+                </p>
+                <ol className="mt-2 divide-y divide-border border-y border-border">
+                  {unsectioned.map((lesson) => (
+                    <SidebarRow
+                      key={lesson._id}
+                      lesson={lesson}
+                      number={numberOf(lesson._id)}
+                      done={completed.has(lesson._id)}
+                      active={lesson._id === current?._id}
+                      onSelect={selectLesson}
+                    />
+                  ))}
+                </ol>
+              </div>
+            )}
+
+            {sections.length === 0 && (
+              <ol className="divide-y divide-border border-y border-border">
+                {lessons.map((lesson) => (
+                  <SidebarRow
+                    key={lesson._id}
+                    lesson={lesson}
+                    number={numberOf(lesson._id)}
+                    done={completed.has(lesson._id)}
+                    active={lesson._id === current?._id}
+                    onSelect={selectLesson}
+                  />
+                ))}
+              </ol>
+            )}
+          </div>
         </aside>
       </div>
     </>
+  );
+}
+
+function SidebarRow({
+  lesson,
+  number,
+  done,
+  active,
+  onSelect,
+}: {
+  lesson: LessonResponse;
+  number: number;
+  done: boolean;
+  active: boolean;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={() => onSelect(lesson._id)}
+        className={cn(
+          "flex w-full min-w-0 items-center gap-3 py-3 text-left text-sm transition-colors",
+          active ? "text-primary" : "hover:text-primary",
+        )}
+      >
+        <span className="w-6 shrink-0 font-mono text-xs text-muted-foreground">
+          {String(number).padStart(2, "0")}
+        </span>
+        {done ? (
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+        ) : active ? (
+          <PlayCircle className="h-4 w-4 shrink-0 text-primary" />
+        ) : (
+          <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
+        )}
+        <span
+          className={cn(
+            "min-w-0 flex-1 break-words",
+            active && "font-semibold",
+          )}
+        >
+          {lesson.title}
+        </span>
+        <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+          {lesson.duration}m
+        </span>
+      </button>
+    </li>
   );
 }

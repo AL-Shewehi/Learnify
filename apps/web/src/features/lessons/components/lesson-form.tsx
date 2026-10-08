@@ -8,6 +8,7 @@ import {
   createLessonSchema,
   type CreateLessonInput,
   type LessonResponse,
+  type SectionResponse,
 } from "@learnify/shared";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/form/form-field";
@@ -15,11 +16,14 @@ import { FormField } from "@/components/form/form-field";
 interface Props {
   courseId: string;
   initial?: LessonResponse;
+  sections?: SectionResponse[];
   onCreate: (input: CreateLessonInput) => void;
   onUpdate: (input: CreateLessonInput) => void;
   onCancel: () => void;
   isPending: boolean;
 }
+
+const NO_SECTION = "__none";
 
 const TYPE_OPTIONS = [
   { value: "video", label: "Video lesson" },
@@ -28,6 +32,7 @@ const TYPE_OPTIONS = [
 
 export function LessonForm({
   initial,
+  sections = [],
   onCreate,
   onUpdate,
   onCancel,
@@ -46,6 +51,7 @@ export function LessonForm({
       type: "video",
       duration: 10,
       isPreview: false,
+      sectionId: NO_SECTION,
     },
   });
 
@@ -59,16 +65,28 @@ export function LessonForm({
         articleBody: initial.articleBody,
         duration: initial.duration,
         isPreview: initial.isPreview,
+        sectionId:
+          typeof initial.section === "string" ? initial.section : NO_SECTION,
       });
     }
   }, [initial, reset]);
 
   const type = useWatch({ control, name: "type" });
 
+  const sectionOptions = [
+    { value: NO_SECTION, label: "No section" },
+    ...sections.map((s) => ({ value: s._id, label: s.title })),
+  ];
+
   const onSubmit = handleSubmit(
     (input) => {
+      const sectionId =
+        !input.sectionId || input.sectionId === NO_SECTION
+          ? null
+          : input.sectionId;
       const clean: CreateLessonInput = {
         ...input,
+        sectionId,
         videoUrl: input.type === "video" ? input.videoUrl : undefined,
         articleBody: input.type === "article" ? input.articleBody : undefined,
       };
@@ -153,6 +171,18 @@ export function LessonForm({
         register={register}
         errors={errors}
       />
+
+      {sectionOptions.length > 1 && (
+        <FormField<CreateLessonInput>
+          name="sectionId"
+          label="Section (optional)"
+          type="select"
+          options={sectionOptions}
+          register={register}
+          control={control}
+          errors={errors}
+        />
+      )}
 
       <label className="flex items-center gap-2 text-sm">
         <input
