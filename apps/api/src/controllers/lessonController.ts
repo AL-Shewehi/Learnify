@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
+import { Types } from "mongoose";
 import Lesson from "../models/Lesson";
 import Course from "../models/Course";
 import Enrollment from "../models/Enrollment";
+import Section from "../models/Section";
 import ApiError from "../utils/ApiError";
 import { getRouteParam } from "../utils/getRouteParam";
 import { ensureCourseOwner } from "../utils/ensureCourseAccess";
@@ -12,6 +14,26 @@ import {
 } from "@learnify/shared";
 
 // ============ Instructor: CRUD ============
+
+const resolveSection = async (
+  courseId: string,
+  sectionId: string | null | undefined,
+): Promise<Types.ObjectId | null> => {
+  if (sectionId === undefined || sectionId === null) return null;
+
+  if (!Types.ObjectId.isValid(sectionId)) {
+    throw new ApiError("Invalid section id", 400);
+  }
+
+  const section = await Section.findById(sectionId).select("course");
+  if (!section) throw new ApiError("Section not found", 404);
+  if (section.course.toString() !== courseId.toString()) {
+    throw new ApiError("Section does not belong to this course", 400);
+  }
+
+  return section._id;
+};
+
 export const createLesson = async (req: Request, res: Response) => {
   if (!req.user) throw new ApiError("User not authenticated", 401);
 
@@ -23,10 +45,14 @@ export const createLesson = async (req: Request, res: Response) => {
     throw new ApiError(parsed.error.issues[0].message, 400);
   }
 
+  const { sectionId, ...lessonInput } = parsed.data;
+  const section = await resolveSection(courseId, sectionId);
+
   const order = await Lesson.nextOrder(courseId);
   const lesson = await Lesson.create({
-    ...parsed.data,
+    ...lessonInput,
     course: courseId,
+    section,
     order,
   });
   res.status(201).json({ status: "success", data: { lesson } });
@@ -51,6 +77,15 @@ export const updateLesson = async (req: Request, res: Response) => {
     ...(parsed.data.type === "video" ? { articleBody: undefined } : {}),
     ...(parsed.data.type === "article" ? { videoUrl: undefined } : {}),
   };
+
+  if (parsed.data.sectionId !== undefined) {
+    const section = await resolveSection(
+      lesson.course.toString(),
+      parsed.data.sectionId,
+    );
+    (update as Record<string, unknown>).section = section;
+  }
+  delete (update as Record<string, unknown>).sectionId;
   lesson.set(update);
   await lesson.save();
   res.status(200).json({ status: "success", data: { lesson } });
@@ -157,6 +192,14 @@ export const reorderLessons = async (req: Request, res: Response) => {
     ids.map((id, index) => ({
       updateOne: {
         filter: { _id: id },
+        update: { $set: { order: -(index + 1) } },
+      },
+    })),
+  );
+  await Lesson.bulkWrite(
+    ids.map((id, index) => ({
+      updateOne: {
+        filter: { _id: id },
         update: { $set: { order: index + 1 } },
       },
     })),
@@ -167,6 +210,34 @@ export const reorderLessons = async (req: Request, res: Response) => {
 };
 
 // ============ Students / Public: reading ============
+
+const sectionKeyOf = (lesson: unknown): string | null => {
+  if (typeof lesson !== "object" || lesson === null) return null;
+  const section = (lesson as { section?: unknown }).section;
+  if (section === null || section === undefined) return null;
+  return String(section);
+};
+
+const groupLessonsBySection = <T>(
+  sections: { _id: Types.ObjectId | string; title: string; order: number }[],
+  lessons: T[],
+) => {
+  const bySection = new Map<string, T[]>();
+  for (const lesson of lessons) {
+    const key = sectionKeyOf(lesson);
+    if (!key) continue;
+    const group = bySection.get(key);
+    if (group) group.push(lesson);
+    else bySection.set(key, [lesson]);
+  }
+
+  return sections.map((section) => ({
+    _id: section._id,
+    title: section.title,
+    order: section.order,
+    lessons: bySection.get(section._id.toString()) ?? [],
+  }));
+};
 
 export const getCourseLessons = async (
   req: Request,
@@ -192,10 +263,18 @@ export const getCourseLessons = async (
     hasAccess = await Enrollment.isEnrolled(req.user._id, courseId);
   }
 
-  const lessons = await Lesson.find({ course: courseId })
-    .sort({ order: 1 })
-    .select("title description order duration isPreview type videoUrl articleBody")
-    .lean();
+  const [lessons, sections] = await Promise.all([
+    Lesson.find({ course: courseId })
+      .sort({ order: 1 })
+      .select(
+        "title description order duration isPreview type videoUrl articleBody section",
+      )
+      .lean(),
+    Section.find({ course: courseId })
+      .sort({ order: 1 })
+      .select("title order")
+      .lean(),
+  ]);
 
   const totalDuration = lessons.reduce((sum, l) => sum + l.duration, 0);
 
@@ -212,6 +291,7 @@ export const getCourseLessons = async (
               duration: l.duration,
               isPreview: false,
               type: l.type,
+              section: l.section ?? null,
               locked: true,
             },
       );
@@ -219,7 +299,12 @@ export const getCourseLessons = async (
   res.status(200).json({
     status: "success",
     results: lessons.length,
-    data: { lessons: payload, totalDuration, hasAccess },
+    data: {
+      lessons: payload,
+      sections: groupLessonsBySection(sections, payload),
+      totalDuration,
+      hasAccess,
+    },
   });
 };
 

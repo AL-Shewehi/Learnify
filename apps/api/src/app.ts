@@ -11,6 +11,7 @@ import enrollmentRoutes from "./routes/enrollmentRoutes";
 import cookieParser from "cookie-parser";
 import lessonRoutes from "./routes/lessonRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
+import sectionRoutes from "./routes/sectionRoutes.js";
 
 
 
@@ -73,6 +74,7 @@ app.use("/api/v1", enrollmentRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1", lessonRoutes);
 app.use("/api/v1", reviewRoutes);
+app.use("/api/v1", sectionRoutes);
 
 // ============ 404 + Error Handling ============
 app.use(notFound);

@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Course from "../models/Course.js";
 import Review from "../models/Review.js";
+import Section from "../models/Section.js";
+import Lesson from "../models/Lesson.js";
 
 dotenv.config({ path: ".env" });
 
@@ -28,6 +30,12 @@ async function fixIndexes() {
     await Review.syncIndexes();
     console.log("✅ Synced Review indexes from schema");
 
+    await Section.syncIndexes();
+    console.log("✅ Synced Section indexes from schema");
+
+    await Lesson.syncIndexes();
+    console.log("✅ Synced Lesson indexes from schema");
+
     // 3. Backfill ratingsCount for courses created before the field existed
     const backfill = await Course.updateMany(
       { ratingsCount: { $exists: false } },
@@ -44,6 +52,11 @@ async function fixIndexes() {
     const reviewIndexes = await Review.collection.indexes();
     console.log("📋 Current Review indexes:");
     reviewIndexes.forEach((index) => {
+      console.log(`   - ${index.name}`);
+    });
+    const sectionIndexes = await Section.collection.indexes();
+    console.log("📋 Current Section indexes:");
+    sectionIndexes.forEach((index) => {
       console.log(`   - ${index.name}`);
     });
 

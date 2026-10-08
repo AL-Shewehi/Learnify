@@ -14,3 +14,5 @@ export * from "./types/checkout.js";
 export * from "./schemas/checkout.js";
 export * from "./types/review.js";
 export * from "./schemas/review.js";
+export * from "./types/section.js";
+export * from "./schemas/section.js";

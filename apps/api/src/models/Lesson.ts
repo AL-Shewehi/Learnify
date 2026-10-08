@@ -5,6 +5,7 @@ export type LessonType = "video" | "article";
 export interface ILesson extends Document {
   _id: Types.ObjectId;
   course: Types.ObjectId;
+  section?: Types.ObjectId | null;
   title: string;
   description?: string;
   type: LessonType;
@@ -27,6 +28,12 @@ const lessonSchema = new Schema<ILesson>(
       type: Schema.Types.ObjectId,
       ref: "Course",
       required: [true, "Lesson must belong to a course"],
+      index: true,
+    },
+    section: {
+      type: Schema.Types.ObjectId,
+      ref: "Section",
+      default: null,
       index: true,
     },
     title: {
@@ -64,6 +71,7 @@ const lessonSchema = new Schema<ILesson>(
 );
 
 lessonSchema.index({ course: 1, order: 1 }, { unique: true });
+lessonSchema.index({ course: 1, section: 1, order: 1 });
 
 lessonSchema.pre("validate", function () {
   if (this.type === "video" && !this.videoUrl) {

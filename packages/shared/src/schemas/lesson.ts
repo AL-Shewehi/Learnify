@@ -5,6 +5,12 @@ const lessonUrl = z
   .trim()
   .regex(/^https?:\/\/.+/, "Must be a valid URL");
 
+const sectionRef = z
+  .string()
+  .regex(/^[a-f\d]{24}$/i, "Invalid section id")
+  .nullable()
+  .optional();
+
 export const createLessonSchema = z
   .object({
     title: z
@@ -22,6 +28,7 @@ export const createLessonSchema = z
       .min(1, "Duration must be at least 1 minute")
       .max(600, "Duration must be at most 600 minutes"),
     isPreview: z.boolean().optional(),
+    sectionId: sectionRef,
   })
   .strict()
   .refine((d) => d.type !== "video" || Boolean(d.videoUrl), {
@@ -42,6 +49,7 @@ export const updateLessonSchema = z
     articleBody: z.string().trim().optional(),
     duration: z.number().int().min(1).max(600).optional(),
     isPreview: z.boolean().optional(),
+    sectionId: sectionRef,
   })
   .strict()
   .refine((d) => d.type !== "video" || Boolean(d.videoUrl), {
